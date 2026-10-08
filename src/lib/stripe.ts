@@ -36,5 +36,5 @@ export async function getPriceId(plan: Plan): Promise<string> {
 
 /** Stripe Checkout / customer locale for an app locale. */
 export function stripeLocale(locale: Locale): Stripe.Checkout.SessionCreateParams.Locale {
-  return ({ "pt-PT": "pt", "pt-BR": "pt-BR", es: "es", en: "en-GB" } as const)[locale];
+  return ({ "pt-PT": "pt", fr: "fr", es: "es", en: "en-GB" } as const)[locale];
 }

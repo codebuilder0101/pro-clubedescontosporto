@@ -1,6 +1,6 @@
 import { defineRouting } from "next-intl/routing";
 
-export const locales = ["pt-PT", "pt-BR", "es", "en"] as const;
+export const locales = ["pt-PT", "fr", "es", "en"] as const;
 export type Locale = (typeof locales)[number];
 
 export const defaultLocale: Locale = "pt-PT";
@@ -8,7 +8,7 @@ export const defaultLocale: Locale = "pt-PT";
 /** Short label shown in the locale switcher. */
 export const localeLabels: Record<Locale, string> = {
   "pt-PT": "PT",
-  "pt-BR": "BR",
+  fr: "FR",
   es: "ES",
   en: "EN",
 };
@@ -16,12 +16,12 @@ export const localeLabels: Record<Locale, string> = {
 export const routing = defineRouting({
   locales,
   defaultLocale,
-  // URL prefixes differ from the BCP 47 tags: pt-PT lives at /pt, pt-BR at /br.
+  // URL prefixes: pt-PT lives at /pt (not /pt-PT); the others match their tag.
   localePrefix: {
     mode: "always",
     prefixes: {
       "pt-PT": "/pt",
-      "pt-BR": "/br",
+      fr: "/fr",
       es: "/es",
       en: "/en",
     },

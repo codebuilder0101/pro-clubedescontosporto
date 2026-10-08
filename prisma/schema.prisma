@@ -2,7 +2,7 @@
 //
 // Conventions
 // - Translated content lives in *Translation tables keyed by (id, locale).
-//   `locale` is one of pt-PT, pt-BR, es, en (CHECK constraint in the migration).
+//   `locale` is one of pt-PT, fr, es, en (CHECK constraint in the migrations).
 //   Read fallback: requested locale → pt-PT → first available (src/lib/content-locale.ts).
 // - Subscription status is written only by verified Stripe webhooks
 //   (provider STRIPE) or by an admin grant (provider MANUAL).

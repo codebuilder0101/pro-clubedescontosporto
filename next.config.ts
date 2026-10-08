@@ -8,6 +8,13 @@ const nextConfig: NextConfig = {
   // production build that pm2 serves from .next.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  // pt-BR (/br) was replaced by French; old links land on the Portuguese site.
+  async redirects() {
+    return [
+      { source: "/br", destination: "/pt", permanent: true },
+      { source: "/br/:path*", destination: "/pt/:path*", permanent: true },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);

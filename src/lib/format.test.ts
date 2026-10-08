@@ -7,7 +7,7 @@ const plain = (s: string) => s.replace(/[  ]/g, " ");
 describe("formatMoney", () => {
   it("formats whole euros without decimals per locale", () => {
     expect(plain(formatMoney("pt-PT", 1))).toBe("1 €");
-    expect(plain(formatMoney("pt-BR", 1))).toBe("€ 1");
+    expect(plain(formatMoney("fr", 1))).toBe("1 €");
     expect(plain(formatMoney("es", 10))).toBe("10 €");
     expect(formatMoney("en", 1)).toBe("€1");
   });

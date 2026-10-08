@@ -10,7 +10,7 @@ const handleI18nRouting = createMiddleware(routing);
  * Public pages are static and cacheable: a Set-Cookie with a session token
  * must never end up in a shared cache, so they don't get one.
  */
-const SESSION_PAGES = /^\/(?:pt|br|es|en)\/(?:home|explore|offers|card|account|join)(?:\/|$)/;
+const SESSION_PAGES = /^\/(?:pt|fr|es|en)\/(?:home|explore|offers|card|account|join)(?:\/|$)/;
 
 export default function proxy(request: NextRequest) {
   const response = handleI18nRouting(request);

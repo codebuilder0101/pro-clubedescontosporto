@@ -53,6 +53,14 @@ test("offer page shows conditions, map, directions and the card shortcut", async
   await expect(page).toHaveURL(/\/es\/card$/);
 });
 
+test("offers are written in French on /fr", async ({ page }) => {
+  await page.goto("/fr/offers/tasca-da-viela");
+  await expect(page.getByText("30\u00a0% sur toute l'addition")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Itinéraire" })).toBeVisible();
+  await page.goto("/fr/explore?q=morue");
+  await expect(page.getByRole("link", { name: /Casa do Bacalhau Velho/ })).toBeVisible();
+});
+
 test("unknown offers are 404", async ({ page }) => {
   const res = await page.goto("/en/offers/does-not-exist");
   expect(res?.status()).toBe(404);
@@ -71,7 +79,7 @@ test("the card shows the member and a running clock", async ({ page }) => {
 test("member pages work in every locale and are not indexed", async ({ page }) => {
   for (const [path, nav] of [
     ["/pt/home", "Explorar"],
-    ["/br/explore", "Explorar"],
+    ["/fr/explore", "Explorer"],
     ["/es/card", "Tarjeta"],
     ["/en/account", "Explore"],
   ] as const) {
@@ -82,8 +90,8 @@ test("member pages work in every locale and are not indexed", async ({ page }) =
 });
 
 test("account page shows the subscription", async ({ page }) => {
-  await page.goto("/br/account");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Olá, Rita.");
-  await expect(page.getByText("Plano mensal")).toBeVisible();
-  await expect(page.getByText("Ativa", { exact: true })).toBeVisible();
+  await page.goto("/fr/account");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bonjour, Rita.");
+  await expect(page.getByText("Formule mensuelle")).toBeVisible();
+  await expect(page.getByText("Actif", { exact: true })).toBeVisible();
 });

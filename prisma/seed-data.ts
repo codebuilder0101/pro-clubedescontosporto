@@ -2,22 +2,22 @@
 // tests and demos. The venues are fictional. Production seeds reference data
 // only (see seed.ts); real partners are entered by the club team.
 
-type Locale = "pt-PT" | "pt-BR" | "es" | "en";
+type Locale = "pt-PT" | "fr" | "es" | "en";
 export type L10n<T = string> = Record<Locale, T>;
 
 export const categories: { slug: string; icon: string; tone: string; name: L10n }[] = [
-  { slug: "restaurants", icon: "fork", tone: "ci-roof", name: { "pt-PT": "Restaurantes", "pt-BR": "Restaurantes", es: "Restaurantes", en: "Restaurants" } },
-  { slug: "bars", icon: "glass", tone: "ci-violet", name: { "pt-PT": "Bares", "pt-BR": "Bares", es: "Bares", en: "Bars" } },
-  { slug: "events", icon: "ticket", tone: "ci-sky", name: { "pt-PT": "Eventos", "pt-BR": "Eventos", es: "Eventos", en: "Events" } },
-  { slug: "culture", icon: "museum", tone: "ci-sun", name: { "pt-PT": "Cultura", "pt-BR": "Cultura", es: "Cultura", en: "Culture" } },
-  { slug: "leisure", icon: "wave", tone: "ci-leaf", name: { "pt-PT": "Lazer", "pt-BR": "Lazer", es: "Ocio", en: "Leisure" } },
+  { slug: "restaurants", icon: "fork", tone: "ci-roof", name: { "pt-PT": "Restaurantes", fr: "Restaurants", es: "Restaurantes", en: "Restaurants" } },
+  { slug: "bars", icon: "glass", tone: "ci-violet", name: { "pt-PT": "Bares", fr: "Bars", es: "Bares", en: "Bars" } },
+  { slug: "events", icon: "ticket", tone: "ci-sky", name: { "pt-PT": "Eventos", fr: "Événements", es: "Eventos", en: "Events" } },
+  { slug: "culture", icon: "museum", tone: "ci-sun", name: { "pt-PT": "Cultura", fr: "Culture", es: "Cultura", en: "Culture" } },
+  { slug: "leisure", icon: "wave", tone: "ci-leaf", name: { "pt-PT": "Lazer", fr: "Loisirs", es: "Ocio", en: "Leisure" } },
 ];
 
 export const zones: { slug: string; name: L10n }[] = [
-  { slug: "ribeira", name: { "pt-PT": "Ribeira e Baixa", "pt-BR": "Ribeira e Baixa", es: "Ribeira y Baixa", en: "Ribeira and Baixa" } },
-  { slug: "boavista", name: { "pt-PT": "Cedofeita e Boavista", "pt-BR": "Cedofeita e Boavista", es: "Cedofeita y Boavista", en: "Cedofeita and Boavista" } },
-  { slug: "foz", name: { "pt-PT": "Foz e Matosinhos", "pt-BR": "Foz e Matosinhos", es: "Foz y Matosinhos", en: "Foz and Matosinhos" } },
-  { slug: "gaia", name: { "pt-PT": "Vila Nova de Gaia", "pt-BR": "Vila Nova de Gaia", es: "Vila Nova de Gaia", en: "Vila Nova de Gaia" } },
+  { slug: "ribeira", name: { "pt-PT": "Ribeira e Baixa", fr: "Ribeira et Baixa", es: "Ribeira y Baixa", en: "Ribeira and Baixa" } },
+  { slug: "boavista", name: { "pt-PT": "Cedofeita e Boavista", fr: "Cedofeita et Boavista", es: "Cedofeita y Boavista", en: "Cedofeita and Boavista" } },
+  { slug: "foz", name: { "pt-PT": "Foz e Matosinhos", fr: "Foz et Matosinhos", es: "Foz y Matosinhos", en: "Foz and Matosinhos" } },
+  { slug: "gaia", name: { "pt-PT": "Vila Nova de Gaia", fr: "Vila Nova de Gaia", es: "Vila Nova de Gaia", en: "Vila Nova de Gaia" } },
 ];
 
 type OfferCopy = {
@@ -67,12 +67,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Segunda a quinta, ao jantar · 19:00–23:00",
         conditions: ["Não acumula com outras promoções", "Reserva recomendada à sexta"],
       },
-      "pt-BR": {
-        title: "30% no total da conta",
-        summary: "No jantar, de segunda a quinta",
-        description: "Petiscos do norte de Portugal num beco de granito perto do rio. Tripas, bacalhau à Gomes de Sá e a francesinha da casa, servida em pratos de azulejo antigo.",
-        schedule: "Segunda a quinta, no jantar · 19h–23h",
-        conditions: ["Não cumulativo com outras promoções", "Recomendamos reservar às sextas"],
+      fr: {
+        title: "30 % sur toute l'addition",
+        summary: "Au dîner, du lundi au jeudi",
+        description: "Des petiscos du nord dans une ruelle en granit au bord du fleuve. Tripes, morue à la Gomes de Sá et la francesinha maison, servie dans de vieilles assiettes en azulejos.",
+        schedule: "Du lundi au jeudi, au dîner · 19 h – 23 h",
+        conditions: ["Non cumulable avec d'autres promotions", "Réservation conseillée le vendredi"],
       },
       es: {
         title: "30 % en el total de la cuenta",
@@ -106,12 +106,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 12:00–15:00 e 19:00–22:30",
         conditions: ["Válido em pratos principais"],
       },
-      "pt-BR": {
-        title: "20% nos pratos principais",
-        summary: "Almoço e jantar, todos os dias",
-        description: "Uma casa de família dedicada ao bacalhau: à Brás, com natas, assado na brasa. A carta de vinhos do Douro também vale a visita.",
-        schedule: "Todos os dias · 12h–15h e 19h–22h30",
-        conditions: ["Válido nos pratos principais"],
+      fr: {
+        title: "20 % sur les plats principaux",
+        summary: "Midi et soir, tous les jours",
+        description: "Une maison familiale entièrement consacrée à la morue : à la Brás, à la crème, grillée sur la braise. La carte des vins du Douro vaut aussi le détour.",
+        schedule: "Tous les jours · 12 h – 15 h et 19 h – 22 h 30",
+        conditions: ["Valable sur les plats principaux"],
       },
       es: {
         title: "20 % en platos principales",
@@ -145,12 +145,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Terça a domingo · 12:00–23:00",
         conditions: ["Até 2 francesinhas por cartão", "Não válido em take-away"],
       },
-      "pt-BR": {
-        title: "25% na francesinha da casa",
-        summary: "Com batata frita inclusa",
-        description: "Molho de receita secreta, pão de forma tostado e ovo se você quiser. Uma das francesinhas mais comentadas de Cedofeita.",
-        schedule: "Terça a domingo · 12h–23h",
-        conditions: ["Até 2 francesinhas por cartão", "Não vale para viagem"],
+      fr: {
+        title: "25 % sur la francesinha maison",
+        summary: "Frites comprises",
+        description: "Une sauce à la recette jalousement gardée, du pain de mie grillé et un œuf si vous le souhaitez. L'une des francesinhas qui font le plus parler d'elles à Cedofeita.",
+        schedule: "Du mardi au dimanche · 12 h – 23 h",
+        conditions: ["2 francesinhas maximum par carte", "Non valable à emporter"],
       },
       es: {
         title: "25 % en la francesinha de la casa",
@@ -184,12 +184,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 17:00–00:00",
         conditions: ["Oferta do petisco de menor valor", "Um 2x1 por visita"],
       },
-      "pt-BR": {
-        title: "Segundo petisco grátis",
-        summary: "Na compra de um petisco",
-        description: "Pataniscas, moelas, pica-pau e queijos da serra num salão de pedra de frente para o rio.",
-        schedule: "Todos os dias · 17h–0h",
-        conditions: ["O petisco de menor valor é grátis", "Um 2 por 1 por visita"],
+      fr: {
+        title: "Deuxième petisco offert",
+        summary: "Pour un petisco commandé",
+        description: "Beignets de morue, gésiers, pica-pau et fromages de la Serra dans une salle en pierre face au fleuve.",
+        schedule: "Tous les jours · 17 h – minuit",
+        conditions: ["Le petisco le moins cher est offert", "Un 2 pour 1 par visite"],
       },
       es: {
         title: "Segunda tapa gratis",
@@ -223,12 +223,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Domingo a quinta · 12:30–22:30",
         conditions: ["Não inclui bebidas"],
       },
-      "pt-BR": {
-        title: "15% em frutos do mar e peixe grelhado",
-        summary: "De domingo a quinta",
-        description: "Amêijoas à Bulhão Pato, polvo à lagareiro e peixe do dia com vista para o mar da Foz.",
-        schedule: "Domingo a quinta · 12h30–22h30",
-        conditions: ["Bebidas não incluídas"],
+      fr: {
+        title: "15 % sur les fruits de mer et le poisson grillé",
+        summary: "Du dimanche au jeudi",
+        description: "Palourdes à la Bulhão Pato, poulpe à la lagareiro et poisson du jour, face à l'océan à Foz.",
+        schedule: "Du dimanche au jeudi · 12 h 30 – 22 h 30",
+        conditions: ["Boissons non comprises"],
       },
       es: {
         title: "15 % en marisco y pescado a la brasa",
@@ -262,12 +262,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 12:00–16:00 e 19:00–23:00",
         conditions: ["Conta mínima de 40 €", "Um desconto por mesa"],
       },
-      "pt-BR": {
-        title: "10 € de desconto em contas acima de 40 €",
-        summary: "Peixe fresco do mercado de Matosinhos",
-        description: "Sardinhas, robalo e lulas grelhadas na rua do peixe, com a brasa acesa na porta.",
-        schedule: "Todos os dias · 12h–16h e 19h–23h",
-        conditions: ["Conta mínima de 40 €", "Um desconto por mesa"],
+      fr: {
+        title: "10 € de réduction dès 40 € d'addition",
+        summary: "Poisson frais du marché de Matosinhos",
+        description: "Sardines, bar et calamars grillés dans la rue des poissonniers, le charbon allumé devant la porte.",
+        schedule: "Tous les jours · 12 h – 16 h et 19 h – 23 h",
+        conditions: ["Addition minimum de 40 €", "Une réduction par table"],
       },
       es: {
         title: "10 € de descuento en cuentas de más de 40 €",
@@ -301,12 +301,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 08:00–18:00",
         conditions: ["Válido na sala, não ao balcão de take-away"],
       },
-      "pt-BR": {
-        title: "15% no café da manhã e no lanche",
-        summary: "Todos os dias até as 18h",
-        description: "Pastéis de nata saindo do forno, torradas e café com leite num salão art déco ao lado do mercado.",
-        schedule: "Todos os dias · 8h–18h",
-        conditions: ["Válido no salão, não no balcão para viagem"],
+      fr: {
+        title: "15 % sur les petits-déjeuners et les goûters",
+        summary: "Tous les jours jusqu'à 18 h",
+        description: "Des pastéis de nata tout juste sortis du four, des tartines grillées et des galões dans une salle Art déco, à deux pas du marché.",
+        schedule: "Tous les jours · 8 h – 18 h",
+        conditions: ["Valable en salle, pas au comptoir à emporter"],
       },
       es: {
         title: "15 % en desayunos y meriendas",
@@ -341,12 +341,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Terça a sexta · 18:00–20:30",
         conditions: ["Dois cocktails iguais", "Um 2x1 por cartão por visita"],
       },
-      "pt-BR": {
-        title: "2 por 1 em drinks autorais",
-        summary: "No fim da tarde, de terça a sexta",
-        description: "Um terraço no sexto andar com o Porto a seus pés. Drinks com ingredientes portugueses: ginja, vinho do Porto branco, laranja do Algarve.",
-        schedule: "Terça a sexta · 18h–20h30",
-        conditions: ["Dois drinks iguais", "Um 2 por 1 por cartão por visita"],
+      fr: {
+        title: "2 pour 1 sur les cocktails signature",
+        summary: "En fin d'après-midi, du mardi au vendredi",
+        description: "Une terrasse au sixième étage avec Porto à vos pieds. Des cocktails aux ingrédients portugais : ginja, porto blanc, oranges de l'Algarve.",
+        schedule: "Du mardi au vendredi · 18 h – 20 h 30",
+        conditions: ["Deux cocktails identiques", "Un 2 pour 1 par carte et par visite"],
       },
       es: {
         title: "2x1 en cócteles de autor",
@@ -380,12 +380,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 11:00–20:00",
         conditions: ["Maiores de 18 anos"],
       },
-      "pt-BR": {
-        title: "15% em degustações de vinho do Porto",
-        summary: "Degustações de 3 ou 5 vinhos",
-        description: "Uma adega pequena e independente no cais, com tawnies de 10 e 20 anos e vintages de pequenos produtores.",
-        schedule: "Todos os dias · 11h–20h",
-        conditions: ["Maiores de 18 anos"],
+      fr: {
+        title: "15 % sur les dégustations de porto",
+        summary: "Dégustations de 3 ou 5 vins",
+        description: "Une petite cave indépendante sur le quai, avec des tawnies de 10 et 20 ans et des millésimes de petits producteurs.",
+        schedule: "Tous les jours · 11 h – 20 h",
+        conditions: ["Réservé aux plus de 18 ans"],
       },
       es: {
         title: "15 % en catas de vino de Oporto",
@@ -419,11 +419,11 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 16:00–00:00",
         conditions: [],
       },
-      "pt-BR": {
-        title: "20% em todo o cardápio",
-        summary: "No pôr do sol sobre a ponte",
-        description: "Chope, vinho verde e tábuas de frios com a melhor vista da Ponte Luís I e da Ribeira.",
-        schedule: "Todos os dias · 16h–0h",
+      fr: {
+        title: "20 % sur toute la carte",
+        summary: "Au coucher du soleil sur le pont",
+        description: "Bières pression, vinho verde et planches de charcuterie, avec la plus belle vue sur le pont Luís I et la Ribeira.",
+        schedule: "Tous les jours · 16 h – minuit",
         conditions: [],
       },
       es: {
@@ -458,11 +458,11 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Segunda a sábado · 12:00–01:00",
         conditions: [],
       },
-      "pt-BR": {
-        title: "15% em cerveja artesanal e petiscos",
-        summary: "Dias de jogo incluídos",
-        description: "Doze torneiras de cerveja artesanal do norte de Portugal, bifanas e cachorros à moda do Porto.",
-        schedule: "Segunda a sábado · 12h–1h",
+      fr: {
+        title: "15 % sur les bières artisanales et les petiscos",
+        summary: "Soirs de match compris",
+        description: "Douze tireuses de bières artisanales du nord, des bifanas et des hot-dogs à la mode de Porto.",
+        schedule: "Du lundi au samedi · 12 h – 1 h",
         conditions: [],
       },
       es: {
@@ -498,12 +498,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Sextas e sábados · portas às 21:30",
         conditions: ["Até 2 bilhetes por cartão", "Compra na bilheteira, sujeita a lotação"],
       },
-      "pt-BR": {
-        title: "25% nos ingressos de shows",
-        summary: "Sextas e sábados",
-        description: "Um antigo armazém de bacalhau transformado em casa de shows: jazz, fado novo e bandas portuguesas em ascensão.",
-        schedule: "Sextas e sábados · abertura às 21h30",
-        conditions: ["Até 2 ingressos por cartão", "Compra na bilheteria, sujeita à lotação"],
+      fr: {
+        title: "25 % sur les billets de concert",
+        summary: "Vendredis et samedis",
+        description: "Un ancien entrepôt de morue devenu salle de concert : jazz, nouveau fado et groupes portugais qui montent.",
+        schedule: "Vendredis et samedis · ouverture des portes à 21 h 30",
+        conditions: ["2 billets maximum par carte", "Achat au guichet, dans la limite des places disponibles"],
       },
       es: {
         title: "25 % en entradas de conciertos",
@@ -537,12 +537,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Quarta a domingo · 21:00 e 22:30",
         conditions: ["Até 2 bilhetes por cartão", "Reserva obrigatória"],
       },
-      "pt-BR": {
-        title: "20% nas noites de fado",
-        summary: "Ingresso com taça de vinho do Porto",
-        description: "Fado à luz de velas numa casa do século XVIII ao lado da Sé, com guitarra portuguesa e violão.",
-        schedule: "Quarta a domingo · 21h e 22h30",
-        conditions: ["Até 2 ingressos por cartão", "Reserva obrigatória"],
+      fr: {
+        title: "20 % sur les soirées fado",
+        summary: "Billet avec un verre de porto",
+        description: "Du fado à la lueur des bougies dans une maison du XVIIIe siècle près de la cathédrale, avec guitare portugaise et guitare classique.",
+        schedule: "Du mercredi au dimanche · 21 h et 22 h 30",
+        conditions: ["2 billets maximum par carte", "Réservation obligatoire"],
       },
       es: {
         title: "20 % en las noches de fado",
@@ -576,12 +576,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Quinta a sábado · sessão às 21:45",
         conditions: ["Até 2 bilhetes por cartão", "Sessões sujeitas ao tempo"],
       },
-      "pt-BR": {
-        title: "30% nas sessões de cinema ao ar livre",
-        summary: "Espreguiçadeira e manta incluídas",
-        description: "Clássicos e lançamentos projetados na areia, com o barulho das ondas como trilha sonora extra.",
-        schedule: "Quinta a sábado · sessão às 21h45",
-        conditions: ["Até 2 ingressos por cartão", "Sessões sujeitas ao tempo"],
+      fr: {
+        title: "30 % sur le cinéma en plein air",
+        summary: "Transat et plaid compris",
+        description: "Grands classiques et sorties récentes projetés sur le sable, avec le bruit des vagues en fond sonore.",
+        schedule: "Du jeudi au samedi · séance à 21 h 45",
+        conditions: ["2 billets maximum par carte", "Séances selon la météo"],
       },
       es: {
         title: "30 % en las sesiones de cine al aire libre",
@@ -616,12 +616,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Sábados · 10:00 e 15:00",
         conditions: ["Até 2 inscrições por cartão", "Inscrição prévia obrigatória"],
       },
-      "pt-BR": {
-        title: "20% nas oficinas de pintura de azulejo",
-        summary: "Leve o seu azulejo para casa",
-        description: "Três horas pintando azulejo à mão com técnicas tradicionais. O forno cuida do resto e o azulejo fica pronto em uma semana.",
-        schedule: "Sábados · 10h e 15h",
-        conditions: ["Até 2 inscrições por cartão", "Inscrição prévia obrigatória"],
+      fr: {
+        title: "20 % sur les ateliers de peinture d'azulejos",
+        summary: "Repartez avec votre carreau",
+        description: "Trois heures pour peindre un azulejo à la main selon les techniques traditionnelles. Le four fait le reste et votre carreau est prêt en une semaine.",
+        schedule: "Le samedi · 10 h et 15 h",
+        conditions: ["2 inscriptions maximum par carte", "Inscription préalable obligatoire"],
       },
       es: {
         title: "20 % en los talleres de pintura de azulejo",
@@ -655,12 +655,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 10:30 e 16:00",
         conditions: ["Visitas em português, inglês e espanhol"],
       },
-      "pt-BR": {
-        title: "20% nos passeios guiados a pé",
-        summary: "Duas horas pela cidade antiga",
-        description: "Da Ribeira à Sé pelas escadarias, com histórias de comerciantes, cheias do rio e azulejos escondidos.",
-        schedule: "Todos os dias · 10h30 e 16h",
-        conditions: ["Passeios em português, inglês e espanhol"],
+      fr: {
+        title: "20 % sur les visites guidées à pied",
+        summary: "Deux heures dans la vieille ville",
+        description: "De la Ribeira à la cathédrale par les ruelles en escalier, au fil d'histoires de marchands, de crues du fleuve et d'azulejos cachés.",
+        schedule: "Tous les jours · 10 h 30 et 16 h",
+        conditions: ["Visites en portugais, en anglais et en espagnol"],
       },
       es: {
         title: "20 % en las visitas guiadas a pie",
@@ -693,12 +693,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Segunda a sábado · 10:00–20:00",
         conditions: ["Não inclui novidades da semana", "Não acumula com outros descontos"],
       },
-      "pt-BR": {
-        title: "10% em livros e discos",
-        summary: "Exceto lançamentos da semana",
-        description: "Livraria independente com usados escolhidos a dedo, vinil português e um cantinho de leitura com café.",
-        schedule: "Segunda a sábado · 10h–20h",
-        conditions: ["Não inclui lançamentos da semana", "Não cumulativo com outros descontos"],
+      fr: {
+        title: "10 % sur les livres et les disques",
+        summary: "Hors nouveautés de la semaine",
+        description: "Une librairie indépendante avec une sélection soignée de livres d'occasion, des vinyles portugais et un coin lecture avec café.",
+        schedule: "Du lundi au samedi · 10 h – 20 h",
+        conditions: ["Hors nouveautés de la semaine", "Non cumulable avec d'autres réductions"],
       },
       es: {
         title: "10 % en libros y discos",
@@ -732,12 +732,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 09:00–18:00",
         conditions: ["Uma aula com desconto por cartão por semana", "Marcação prévia"],
       },
-      "pt-BR": {
-        title: "10 € de desconto em aulas de surfe",
-        summary: "Prancha e roupa de neoprene incluídas",
-        description: "Aulas de duas horas para iniciantes e intermediários na praia de Matosinhos, com instrutores certificados.",
-        schedule: "Todos os dias · 9h–18h",
-        conditions: ["Uma aula com desconto por cartão por semana", "Agendamento prévio"],
+      fr: {
+        title: "10 € de réduction sur les cours de surf",
+        summary: "Planche et combinaison fournies",
+        description: "Des cours de deux heures pour débutants et intermédiaires sur la plage de Matosinhos, avec des moniteurs diplômés.",
+        schedule: "Tous les jours · 9 h – 18 h",
+        conditions: ["Un cours à prix réduit par carte et par semaine", "Réservation préalable"],
       },
       es: {
         title: "10 € de descuento en clases de surf",
@@ -771,12 +771,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · saídas de hora a hora, 10:00–19:00",
         conditions: ["Sujeito às condições do rio"],
       },
-      "pt-BR": {
-        title: "30% no passeio das seis pontes",
-        summary: "Cinquenta minutos no Douro",
-        description: "Num barco rabelo tradicional, passe por baixo das seis pontes do Porto na hora dourada.",
-        schedule: "Todos os dias · saídas de hora em hora, 10h–19h",
-        conditions: ["Sujeito às condições do rio"],
+      fr: {
+        title: "30 % sur la croisière des six ponts",
+        summary: "Cinquante minutes sur le Douro",
+        description: "À bord d'un rabelo traditionnel, passez sous les six ponts de Porto à l'heure dorée.",
+        schedule: "Tous les jours · départs toutes les heures, 10 h – 19 h",
+        conditions: ["Selon l'état du fleuve"],
       },
       es: {
         title: "30 % en el crucero de los seis puentes",
@@ -810,12 +810,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Todos os dias · 09:30–19:30",
         conditions: ["Até 4 bicicletas por cartão", "Documento de identificação obrigatório"],
       },
-      "pt-BR": {
-        title: "20% no aluguel de bicicletas",
-        summary: "Da Foz a Matosinhos pela orla",
-        description: "Bicicletas clássicas e elétricas para percorrer a orla atlântica, com cadeado e capacete incluídos.",
-        schedule: "Todos os dias · 9h30–19h30",
-        conditions: ["Até 4 bicicletas por cartão", "Documento de identidade obrigatório"],
+      fr: {
+        title: "20 % sur la location de vélos",
+        summary: "De Foz à Matosinhos par le front de mer",
+        description: "Vélos classiques et électriques pour longer la promenade atlantique, antivol et casque compris.",
+        schedule: "Tous les jours · 9 h 30 – 19 h 30",
+        conditions: ["4 vélos maximum par carte", "Pièce d'identité obligatoire"],
       },
       es: {
         title: "20 % en el alquiler de bicicletas",
@@ -849,12 +849,12 @@ export const sampleOffers: SampleOffer[] = [
         schedule: "Segunda a sexta · 10:00–21:00",
         conditions: ["Marcação prévia"],
       },
-      "pt-BR": {
-        title: "25% em massagens e circuito de spa",
-        summary: "De segunda a sexta",
-        description: "Banho turco, piscina coberta e massagens de 50 minutos num jardim escondido a poucos passos das adegas.",
-        schedule: "Segunda a sexta · 10h–21h",
-        conditions: ["Agendamento prévio"],
+      fr: {
+        title: "25 % sur les massages et le parcours spa",
+        summary: "Du lundi au vendredi",
+        description: "Hammam, piscine intérieure et massages de 50 minutes dans un jardin caché, à deux pas des caves de porto.",
+        schedule: "Du lundi au vendredi · 10 h – 21 h",
+        conditions: ["Réservation préalable"],
       },
       es: {
         title: "25 % en masajes y circuito de spa",

@@ -117,8 +117,8 @@ test.describe("sign in and out", () => {
     const email = uniqueEmail("skip");
     await createUser(email, { membership: "active" });
     await signInAs(context, email, baseURL!);
-    await page.goto("/br/login");
-    await expect(page).toHaveURL(/\/br\/home$/);
+    await page.goto("/fr/login");
+    await expect(page).toHaveURL(/\/fr\/home$/);
   });
 });
 

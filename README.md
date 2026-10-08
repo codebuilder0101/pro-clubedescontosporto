@@ -11,7 +11,7 @@ cp .env.example .env.local   # set DATABASE_URL (and E2E_DATABASE_URL for e2e te
 npm install                  # also generates the Prisma client
 npm run db:migrate           # apply migrations to the dev database
 npm run db:seed              # categories, zones, sample offers and demo accounts
-npm run dev                  # http://localhost:3000 → redirects to /pt, /br, /es or /en
+npm run dev                  # http://localhost:3000 → redirects to /pt, /fr, /es or /en
 ```
 
 Demo accounts (development only, password `Porto-2026!`): `member@example.com` (active),

@@ -10,6 +10,8 @@ describe("formatDiscount", () => {
     expect(formatDiscount("pt-PT", d, labels)).toBe("-30%");
     expect(formatDiscount("en", d, labels)).toBe("-30%");
     expect(formatDiscount("es", d, labels)).toBe(`-30${nbsp}%`);
+    // French keeps a no-break space before % as well.
+    expect(formatDiscount("fr", d, labels)).toBe(`-30${nbsp}%`);
   });
 
   it("formats euro amounts per locale", () => {

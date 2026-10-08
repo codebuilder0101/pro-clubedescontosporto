@@ -12,7 +12,7 @@ function trackConsole(page: Page) {
   return problems;
 }
 
-for (const prefix of ["/pt", "/br", "/es", "/en"]) {
+for (const prefix of ["/pt", "/fr", "/es", "/en"]) {
   test(`${prefix}: every section renders without console errors or hydration warnings`, async ({ page }) => {
     const problems = trackConsole(page);
     await page.goto(prefix, { waitUntil: "networkidle" });
@@ -137,7 +137,7 @@ test("every internal link on the home page resolves (no 404s)", async ({ page, r
 test("placeholder pages render in every locale and are not indexed", async ({ page }) => {
   for (const [path, heading] of [
     ["/pt/terms", "Termos e condições"],
-    ["/br/privacy", "Política de privacidade"],
+    ["/fr/privacy", "Politique de confidentialité"],
     ["/es/cookies", "Política de cookies"],
     ["/en/terms", "Terms and conditions"],
   ] as const) {

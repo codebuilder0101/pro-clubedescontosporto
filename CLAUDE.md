@@ -11,7 +11,7 @@ Mobile-first subscription web platform. Members pay 1€/month (or 10€/year) f
 ## Non-negotiable rules
 
 1. **Access control lives on the server.** Offer details (name, address, conditions, map, how to use) must never leave the database for a visitor without an active subscription. Never hide paid content only with CSS, client state or a client redirect. Every server component, route handler and server action that returns member content calls `requireActiveMember()` first.
-2. **Four languages, always.** Every user-facing string exists in `messages/pt-PT.json`, `messages/pt-BR.json`, `messages/es.json` and `messages/en.json`. Never hard-code UI text in components. A missing key fails CI (`npm run i18n:check`).
+2. **Four languages, always.** Every user-facing string exists in `messages/pt-PT.json`, `messages/fr.json`, `messages/es.json` and `messages/en.json`. Never hard-code UI text in components. A missing key fails CI (`npm run i18n:check`).
 3. **Stripe is the source of truth for billing.** Subscription status in our DB is updated only from verified Stripe webhooks, never from the client redirect after checkout.
 4. **Mobile first.** Build and test every screen at 390px width first, then tablet (768px) and desktop (1440px).
 5. **No secrets in the repo.** Use `.env.local` (git-ignored) and keep `.env.example` up to date.
@@ -37,7 +37,7 @@ Mobile-first subscription web platform. Members pay 1€/month (or 10€/year) f
 | Locale | URL prefix | Switcher | Notes |
 |---|---|---|---|
 | pt-PT | /pt | PT | Default and fallback for content |
-| pt-BR | /br | BR | Brazilian vocabulary (celular, tela, cadastro, senha, assinatura, você) |
+| fr | /fr | FR | French (France), "vous" form; no-break space before : ; ! ? % and inside « » |
 | es | /es | ES | Spanish (Spain), tú form |
 | en | /en | EN | British-neutral English, "you" form |
 
@@ -46,7 +46,7 @@ Mobile-first subscription web platform. Members pay 1€/month (or 10€/year) f
 - Money: `formatMoney(locale, amount)` from `src/lib/format.ts` (Intl, EUR). Dates: `formatDateTime` (Intl, Europe/Lisbon). `en` is formatted as `en-GB`.
 - hreflang alternates for all 4 locales plus x-default: `localeAlternates()` in `src/lib/seo.ts`, used from `generateMetadata`.
 - Database content is translated in `*Translation` tables. Fallback: requested locale → pt-PT → first available. Admin forms show one tab per locale with a completeness badge.
-- PT-PT and PT-BR are different locales. Never copy one into the other without adapting vocabulary (see `docs/spec.md`, "Tone per locale").
+- pt-BR was replaced by French (October 2026); old `/br` URLs 308-redirect to `/pt` (`next.config.ts`).
 - Keep a no-break space where a line break would split a unit (`40 %` in es).
 
 ## Code map

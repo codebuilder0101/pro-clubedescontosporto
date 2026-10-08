@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const cases = [
   { prefix: "/pt", lang: "pt-PT", heading: /O Porto inteiro com desconto/, cta: /Ativar meu passe de 1/ },
-  { prefix: "/br", lang: "pt-BR", heading: /O Porto inteiro com desconto/, cta: /Ativar meu passe de/ },
+  { prefix: "/fr", lang: "fr", heading: /Tout Porto à prix réduit/, cta: /Activer mon pass à 1/ },
   { prefix: "/es", lang: "es", heading: /Todo Oporto con descuento/, cta: /Activar mi pase de 1/ },
   { prefix: "/en", lang: "en", heading: /All of Porto at a discount/, cta: /Get my €1 pass/ },
 ];
@@ -28,7 +28,7 @@ test("hreflang alternates cover all locales plus x-default", async ({ page }) =>
   const hreflangs = await page
     .locator('link[rel="alternate"][hreflang]')
     .evaluateAll((els) => els.map((e) => e.getAttribute("hreflang")).sort());
-  expect(hreflangs).toEqual(["en", "es", "pt-BR", "pt-PT", "x-default"]);
+  expect(hreflangs).toEqual(["en", "es", "fr", "pt-PT", "x-default"]);
 });
 
 test.describe("locale detection on /", () => {
@@ -50,10 +50,10 @@ test.describe("locale detection on /", () => {
 
   test("cookie wins over Accept-Language", async ({ browser, baseURL }) => {
     const ctx = await browser.newContext({ locale: "es-ES" });
-    await ctx.addCookies([{ name: "NEXT_LOCALE", value: "pt-BR", url: baseURL! }]);
+    await ctx.addCookies([{ name: "NEXT_LOCALE", value: "fr", url: baseURL! }]);
     const page = await ctx.newPage();
     await page.goto("/");
-    await expect(page).toHaveURL(/\/br$/);
+    await expect(page).toHaveURL(/\/fr$/);
     await ctx.close();
   });
 });
@@ -67,4 +67,21 @@ test("locale switcher keeps the user on the same page", async ({ page }) => {
   await page.getByRole("link", { name: "English" }).filter({ visible: true }).first().click();
   await expect(page).toHaveURL(/\/en$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+});
+
+test("old pt-BR addresses redirect permanently to Portuguese", async ({ request }) => {
+  for (const [from, to] of [["/br", "/pt"], ["/br/join", "/pt/join"]]) {
+    const res = await request.get(from, { maxRedirects: 0 });
+    expect(res.status(), from).toBe(308);
+    expect(res.headers().location, from).toBe(to);
+  }
+});
+
+test("French browsers land on /fr", async ({ browser }) => {
+  const ctx = await browser.newContext({ locale: "fr-FR" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/fr$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Tout Porto à prix réduit");
+  await ctx.close();
 });

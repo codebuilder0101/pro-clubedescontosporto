@@ -12,7 +12,7 @@ describe("pickTranslation", () => {
   });
   it("falls back to pt-PT, then to the first row", () => {
     expect(pickTranslation(rows, "es")?.title).toBe("PT");
-    expect(pickTranslation([{ locale: "en", title: "EN" }], "pt-BR")?.title).toBe("EN");
+    expect(pickTranslation([{ locale: "en", title: "EN" }], "fr")?.title).toBe("EN");
     expect(pickTranslation([], "en")).toBeUndefined();
   });
 });
