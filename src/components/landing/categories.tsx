@@ -1,10 +1,10 @@
 import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
-import { CATEGORY_COUNTS, TOTAL_OFFERS } from "@/lib/landing-data";
+import type { CategorySlug } from "@/lib/landing-data";
 import { Icon, type IconName } from "../icon";
 import { SectionHead } from "./section";
 
-const items: { key: keyof typeof CATEGORY_COUNTS | "all"; icon: IconName; tone: string; tint: string }[] = [
+const items: { key: CategorySlug | "all"; icon: IconName; tone: string; tint: string }[] = [
   { key: "restaurants", icon: "fork", tone: "ci-roof", tint: "#FAD9C9" },
   { key: "bars", icon: "glass", tone: "ci-violet", tint: "#E2D8F7" },
   { key: "events", icon: "ticket", tone: "ci-sky", tint: "#D3E4FA" },
@@ -13,7 +13,7 @@ const items: { key: keyof typeof CATEGORY_COUNTS | "all"; icon: IconName; tone: 
   { key: "all", icon: "grid", tone: "ci-slate", tint: "#DCE3EE" },
 ];
 
-export function Categories() {
+export function Categories({ counts, total }: { counts: Record<CategorySlug, number>; total: number }) {
   const t = useTranslations("Categories");
 
   return (
@@ -27,7 +27,7 @@ export function Categories() {
         />
         <ul className="reveal grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6 xl:gap-[22px]">
           {items.map((item) => {
-            const count = item.key === "all" ? TOTAL_OFFERS : CATEGORY_COUNTS[item.key];
+            const count = item.key === "all" ? total : counts[item.key];
             return (
               <li key={item.key} className="cat-arch" style={{ "--tint": item.tint } as CSSProperties}>
                 <span className={`ci ${item.tone}`}>

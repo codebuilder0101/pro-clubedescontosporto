@@ -13,7 +13,7 @@ const pinKey = {
 } as const satisfies Record<ZoneId, string>;
 
 /** Zone list + illustrated map; choosing a zone highlights its pin. */
-export function ZonesMap() {
+export function ZonesMap({ counts }: { counts: Record<ZoneId, number> }) {
   const t = useTranslations("Zones");
   const [active, setActive] = useState<ZoneId>("ribeira");
 
@@ -43,8 +43,8 @@ export function ZonesMap() {
                   </span>
                   <b className="font-display text-lg text-deep sm:text-[22px]">{t(z.id)}</b>
                   <span className="ml-auto text-base font-extrabold text-cobalt tabular-nums">
-                    <span aria-hidden="true">{z.count}</span>
-                    <span className="sr-only">{t("count", { count: z.count })}</span>
+                    <span aria-hidden="true">{counts[z.id]}</span>
+                    <span className="sr-only">{t("count", { count: counts[z.id] })}</span>
                   </span>
                 </button>
               </li>

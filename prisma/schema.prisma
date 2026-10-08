@@ -1,0 +1,255 @@
+// Clube Descontos Porto — database schema.
+//
+// Conventions
+// - Translated content lives in *Translation tables keyed by (id, locale).
+//   `locale` is one of pt-PT, pt-BR, es, en (CHECK constraint in the migration).
+//   Read fallback: requested locale → pt-PT → first available (src/lib/content-locale.ts).
+// - Subscription status is written only by verified Stripe webhooks
+//   (provider STRIPE) or by an admin grant (provider MANUAL).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum SubscriptionProvider {
+  STRIPE
+  MANUAL
+}
+
+/// Mirrors Stripe's subscription statuses.
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+}
+
+enum Plan {
+  MONTHLY
+  YEARLY
+}
+
+enum DiscountType {
+  /// discountValue = percentage (e.g. 30 → "-30%")
+  PERCENT
+  /// discountValue = euros off (e.g. 10 → "-10 €")
+  AMOUNT
+  /// Two for the price of one
+  TWO_FOR_ONE
+  /// Free-form; the badge text comes from OfferTranslation.badge
+  OTHER
+}
+
+enum OfferStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  /// Always stored lower-cased and trimmed.
+  email           String    @unique
+  name            String
+  /// argon2id hash (PHC string).
+  passwordHash    String
+  preferredLocale String    @default("pt-PT")
+  /// Printed on the virtual card, e.g. "0482 1937".
+  memberNumber    String    @unique
+  role            Role      @default(MEMBER)
+  stripeCustomerId String?  @unique
+  termsAcceptedAt DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  sessions            Session[]
+  subscriptions       Subscription[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+/// Database session. The cookie holds a random token; only its SHA-256 is stored.
+model Session {
+  /// SHA-256 (hex) of the session token.
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  /// SHA-256 (hex) of the token sent by email.
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subscription {
+  id                   String               @id @default(cuid())
+  userId               String
+  provider             SubscriptionProvider
+  stripeSubscriptionId String?              @unique
+  stripePriceId        String?
+  plan                 Plan
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean              @default(false)
+  /// `created` of the last Stripe event applied; older events are ignored.
+  lastStripeEventAt    DateTime?
+  /// Reason for a MANUAL grant.
+  note                 String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+/// Stripe webhook events already processed (idempotency).
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+}
+
+/// Fixed-window counters for rate limiting (login, sign-up, password reset).
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+}
+
+model Category {
+  id        String @id @default(cuid())
+  slug      String @unique
+  /// Icon name from src/components/icon.tsx.
+  icon      String
+  /// Glossy icon tone class (ci-roof, ci-violet, …).
+  tone      String
+  sortOrder Int    @default(0)
+
+  translations CategoryTranslation[]
+  offers       Offer[]
+}
+
+model CategoryTranslation {
+  categoryId String
+  locale     String
+  name       String
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([categoryId, locale])
+}
+
+model Zone {
+  id        String @id @default(cuid())
+  slug      String @unique
+  sortOrder Int    @default(0)
+
+  translations ZoneTranslation[]
+  venues       Venue[]
+}
+
+model ZoneTranslation {
+  zoneId String
+  locale String
+  name   String
+
+  zone Zone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@id([zoneId, locale])
+}
+
+/// A partner establishment. Names and addresses are proper nouns (not translated).
+model Venue {
+  id            String   @id @default(cuid())
+  name          String
+  address       String
+  postalCode    String
+  city          String
+  /// Shown on cards, e.g. "Ribeira", "Cedofeita".
+  neighbourhood String
+  latitude      Float
+  longitude     Float
+  phone         String?
+  website       String?
+  zoneId        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  zone   Zone    @relation(fields: [zoneId], references: [id])
+  offers Offer[]
+
+  @@index([zoneId])
+}
+
+model Offer {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  venueId       String
+  categoryId    String
+  status        OfferStatus  @default(DRAFT)
+  featured      Boolean      @default(false)
+  discountType  DiscountType
+  discountValue Decimal?     @db.Decimal(8, 2)
+  /// People covered by one card (null = no limit stated).
+  maxPeople     Int?
+  /// Placeholder illustration (OfferArt kind) until partners upload photos.
+  artKind       String
+  imageUrl      String?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  venue        Venue              @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  category     Category           @relation(fields: [categoryId], references: [id])
+  translations OfferTranslation[]
+
+  @@index([status, categoryId])
+  @@index([venueId])
+}
+
+model OfferTranslation {
+  offerId     String
+  locale      String
+  /// Headline, e.g. "30% off the whole bill".
+  title       String
+  /// One-line conditions for cards, e.g. "Dinner, Monday to Thursday".
+  summary     String
+  description String
+  /// When the offer applies, e.g. "Monday to Thursday, dinner · 19:00–23:00".
+  schedule    String?
+  conditions  String[]
+  /// Badge text for DiscountType.OTHER.
+  badge       String?
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@id([offerId, locale])
+}

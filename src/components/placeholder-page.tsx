@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 import { pageMetadata } from "@/lib/seo";
 import { Icon } from "./icon";
 
-export type PlaceholderKey = "join" | "login" | "card" | "terms" | "privacy" | "cookies";
+export type PlaceholderKey = "terms" | "privacy" | "cookies";
 
 /**
  * Temporary page for routes the landing already links to but that are built

@@ -12,8 +12,11 @@ import { SavingsCalculator } from "@/components/landing/savings-calculator";
 import { Wave, WAVE_A, WAVE_B } from "@/components/landing/section";
 import { ZonesMap } from "@/components/landing/zones-map";
 import { routing } from "@/i18n/routing";
-import { ACTIVE_PARTNERS } from "@/lib/landing-data";
+import { getLandingStats } from "@/lib/landing-stats";
 import { pageMetadata } from "@/lib/seo";
+
+// Static page; the public counts are refreshed from the database hourly.
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
@@ -24,18 +27,19 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const stats = await getLandingStats();
 
   return (
     <>
-      <Hero partners={ACTIVE_PARTNERS} />
+      <Hero partners={stats.partners} />
       <Wave d={WAVE_A} fill="#E6ECF7" />
-      <Categories />
+      <Categories counts={stats.categories} total={stats.totalOffers} />
       <Wave d={WAVE_B} fill="#123274" background="#E6ECF7" />
       <HowItWorks />
       <Wave d={WAVE_B} fill="var(--linen)" background="#0F2D6B" flip />
       <Featured />
       <SavingsCalculator />
-      <ZonesMap />
+      <ZonesMap counts={stats.zones} />
       <Plans />
       <Faq />
       <CtaBand />

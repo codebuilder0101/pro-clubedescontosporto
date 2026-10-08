@@ -23,7 +23,7 @@ Mobile-first subscription web platform. Members pay 1€/month (or 10€/year) f
 - Tailwind CSS v4; design tokens are CSS variables on `:root` in `src/app/globals.css`, exposed to Tailwind via `@theme inline` (`bg-cobalt`, `text-deep`, …)
 - i18n: next-intl (`src/i18n/*`)
 - Database: PostgreSQL + Prisma (pg_trgm and unaccent for search)
-- Auth: Auth.js (NextAuth v5), email + password (argon2id), database sessions. Google/Apple login is Phase 3.
+- Auth: own database sessions (`src/lib/auth/*`), email + password (argon2id). Not Auth.js: its Credentials provider only supports JWT sessions. Google/Apple login is Phase 3.
 - Payments: Stripe Billing (Checkout, Customer Portal, webhooks). Card and SEPA Direct Debit. Monthly 1€ and yearly 10€.
 - Maps: MapLibre GL or Leaflet with OpenStreetMap tiles. Coordinates stored on the venue.
 - Images: S3-compatible storage (Cloudflare R2) via next/image
@@ -52,10 +52,15 @@ Mobile-first subscription web platform. Members pay 1€/month (or 10€/year) f
 ## Code map
 
 - `src/app/[locale]/(site)/`: public site (header + footer via `SiteShell`). Home = `page.tsx`.
-- Placeholder pages (`join`, `login`, `card`, `terms`, `privacy`, `cookies`) use `placeholderRoute()` and are `noindex`. Replace them as the real features land.
+- `src/app/[locale]/(auth)/`: login, join (account → plan → Stripe Checkout → welcome), forgot/reset password. Slim `AuthShell`.
+- `src/app/[locale]/(member)/`: home, explore (search), offers/[slug], card, account. `MemberShell` (header nav + phone dock). Each page calls `requireActiveMember()` (account: `requireUser()`); the data layer `src/lib/offers.ts` calls it again.
+- Server actions: `src/lib/actions/auth.ts`, `src/lib/actions/billing.ts`. Errors are codes translated from `Auth.errors.*`.
+- Stripe: `src/lib/stripe.ts` (Checkout), `src/app/api/stripe/webhook/route.ts` + `src/lib/stripe-webhook.ts` (the only writer of STRIPE subscriptions; idempotent, ignores stale events).
+- Placeholder pages (`terms`, `privacy`, `cookies`) use `placeholderRoute()` and are `noindex`. Replace them as the real features land.
 - Every page sets its own canonical/hreflang with `pageMetadata(locale, href)` (the layout does not).
 - Every layout/page using next-intl calls `setRequestLocale(locale)`, or the route stops being statically rendered.
-- Landing figures (partner/category/zone counts) are static in `src/lib/landing-data.ts` until Prisma exists. Only counts may be public.
+- Landing figures (partner/category/zone counts) come from `getLandingStats()` (`src/lib/landing-stats.ts`), revalidated hourly. Only counts may be public.
+- Database: `prisma/schema.prisma`, client generated to `src/generated/prisma` (git-ignored). DB sessions run in UTC (timestamps are stored without time zone). Sample offers live in `prisma/seed-data.ts` and are never seeded in production.
 - `OfferArt` (`src/components/art`) draws placeholder offer illustrations.
 
 ## Design
@@ -75,7 +80,9 @@ Tokens (`src/app/globals.css`): `--linen #F2F4F8` page, `--paper #FBFAF6` cards,
 npm run dev | build | start
 npm run lint | typecheck | test | test:e2e
 npm run i18n:check     # fails if any key is missing, empty or has different ICU args in any locale
-npx prisma migrate dev | npx prisma db seed       # (once Prisma is added)
+npm run db:migrate | db:deploy | db:seed
+npm run stripe:setup                               # product + prices in Stripe (idempotent)
+npm run member:grant -- <email> <days> | --revoke  # manual access until the backoffice exists
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 

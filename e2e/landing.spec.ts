@@ -59,6 +59,8 @@ test("mobile menu closes with Escape and restores page scroll", async ({ page, i
 
 test("savings calculator updates the estimate", async ({ page }) => {
   await page.goto("/en");
+  // Interact only once the client components have hydrated.
+  await page.waitForLoadState("networkidle");
   const section = page.locator("#savings");
   const total = section.locator("[aria-live]");
   await expect(total).toHaveText("€264"); // 4 outings × €25 × 22%
@@ -84,13 +86,14 @@ test("savings figures use each locale's money format", async ({ page }) => {
 
 test("zones: choosing a zone highlights it", async ({ page }) => {
   await page.goto("/en");
+  await page.waitForLoadState("networkidle");
   const zones = page.locator("#zones");
   await expect(zones.getByRole("button", { name: /Ribeira and Baixa/ })).toHaveAttribute("aria-pressed", "true");
   await zones.getByRole("button", { name: /Vila Nova de Gaia/ }).click();
   await expect(zones.getByRole("button", { name: /Vila Nova de Gaia/ })).toHaveAttribute("aria-pressed", "true");
   await expect(zones.getByRole("button", { name: /Ribeira and Baixa/ })).toHaveAttribute("aria-pressed", "false");
-  // Accessible name includes the offer count, not just the bare number.
-  await expect(zones.getByRole("button", { name: /25 offers/ })).toBeVisible();
+  // Accessible name includes the offer count (from the database), not just the bare number.
+  await expect(zones.getByRole("button", { name: /Vila Nova de Gaia \d+ offers?/ })).toBeVisible();
 });
 
 test("FAQ: first answer open, others toggle", async ({ page }) => {
@@ -133,9 +136,9 @@ test("every internal link on the home page resolves (no 404s)", async ({ page, r
 
 test("placeholder pages render in every locale and are not indexed", async ({ page }) => {
   for (const [path, heading] of [
-    ["/pt/join", "Ativar o passe"],
-    ["/br/card", "Meu cartão"],
-    ["/es/login", "Entrar"],
+    ["/pt/terms", "Termos e condições"],
+    ["/br/privacy", "Política de privacidade"],
+    ["/es/cookies", "Política de cookies"],
     ["/en/terms", "Terms and conditions"],
   ] as const) {
     const res = await page.goto(path);
