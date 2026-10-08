@@ -82,7 +82,7 @@ export default async function OfferPage({ params }: PageProps<"/[locale]/offers/
               </span>
               <h1 className="text-[clamp(40px,5.4vw,72px)] font-extrabold">{offer.venueName}</h1>
             </div>
-            <span className="disc-seal" aria-label={`${t("exclusive")}: ${discount}`}>
+            <span className="disc-seal" data-long={discount.length > 5 ? "" : undefined} aria-label={`${t("exclusive")}: ${discount}`}>
               {discount}
             </span>
           </header>

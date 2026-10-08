@@ -1453,7 +1453,9 @@
     align-items: center;
     gap: clamp(14px, 2vw, 22px);
     padding: 12px clamp(14px, 2vw, 24px) 12px 12px;
-    border-radius: 999px 34px 34px 999px;
+    /* Left radius stays below half the card height: oversized radii make the
+       browser scale every corner down, which squared off the right side. */
+    border-radius: 72px 34px 34px 72px;
     background: #fff;
     box-shadow: var(--sh-1);
     transition:
@@ -1486,10 +1488,11 @@
     white-space: nowrap;
     box-shadow: 0 8px 18px -8px rgba(150, 100, 0, 0.6);
   }
+  /* Sits on the image's top corner so it never covers the venue name. */
   .offer-card .badge {
     position: absolute;
-    top: 10px;
-    left: clamp(70px, 10vw, 120px);
+    top: 6px;
+    left: 4px;
     transform: rotate(-4deg);
   }
   .note-box {
@@ -1534,6 +1537,11 @@
     text-align: center;
     line-height: 1;
     padding: 10px;
+    white-space: nowrap;
+  }
+  /* Longer badges ("2-for-1", "-10 €") get a smaller size so they fit on one line. */
+  .disc-seal[data-long] {
+    font-size: clamp(19px, 2.2vw, 28px);
   }
   .map-card {
     border-radius: 30px;
