@@ -1,8 +1,9 @@
 // `npx prisma db seed`
 //
-// Always upserts reference data (categories, zones). Sample offers and demo
-// accounts are added only outside production, or when SEED_SAMPLE_DATA=true:
-// the sample venues are fictional and must never reach paying members.
+// Always upserts reference data (categories, zones). Sample offers (fictional
+// venues) are added outside production, or in production only with
+// SEED_SAMPLE_DATA=true. Demo accounts share a public password, so they are
+// never created in production.
 import { hash } from "@node-rs/argon2";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -14,6 +15,8 @@ const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.
 const withSamples =
   process.env.SEED_SAMPLE_DATA === "true" ||
   (process.env.SEED_SAMPLE_DATA !== "false" && process.env.NODE_ENV !== "production");
+
+const withDemoAccounts = withSamples && process.env.NODE_ENV !== "production";
 
 /** Password of every demo account (development and e2e only). */
 export const DEMO_PASSWORD = "Porto-2026!";
@@ -138,10 +141,13 @@ async function main() {
   console.log(`Seeded ${categories.length} categories and ${zones.length} zones.`);
   if (withSamples) {
     await seedSampleOffers();
-    await seedDemoAccounts();
-    console.log(`Seeded ${sampleOffers.length} sample offers and 3 demo accounts (password: ${DEMO_PASSWORD}).`);
+    console.log(`Seeded ${sampleOffers.length} sample offers.`);
   } else {
-    console.log("Production: sample offers and demo accounts skipped.");
+    console.log("Sample offers skipped.");
+  }
+  if (withDemoAccounts) {
+    await seedDemoAccounts();
+    console.log(`Seeded 3 demo accounts (password: ${DEMO_PASSWORD}).`);
   }
 }
 
