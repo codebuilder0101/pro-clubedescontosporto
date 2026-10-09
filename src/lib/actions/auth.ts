@@ -111,7 +111,7 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   ]);
   if (!byIp.ok || !byEmail.ok) return { errors: { form: "rateLimited" }, values };
 
-  const user = await db.user.findUnique({ where: { email }, select: { id: true, passwordHash: true, blockedAt: true } });
+  const user = await db.user.findUnique({ where: { email }, select: { id: true, passwordHash: true, blockedAt: true, role: true } });
   if (!user) {
     await verifyDummyPassword(password);
     return { errors: { form: "invalidCredentials" }, values };
@@ -126,6 +126,11 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   await startSession(user.id);
 
   const next = safeNextPath(text(formData.get("next")));
+  // The admin goes to the backoffice; members without a pass to the plan step.
+  if (user.role === "ADMIN") {
+    redirect({ href: next ?? "/admin", locale });
+    return {};
+  }
   const active = await getActiveSubscription(user.id);
   redirect({ href: active ? (next ?? "/home") : "/join", locale });
   return {};
@@ -211,7 +216,8 @@ export async function resetPassword(_prev: FormState, formData: FormData): Promi
   await invalidateUserSessions(record.userId);
   await startSession(record.userId);
 
-  const active = await getActiveSubscription(record.userId);
-  redirect({ href: active ? "/home" : "/join", locale });
+  const role = (await db.user.findUnique({ where: { id: record.userId }, select: { role: true } }))?.role;
+  const active = role === "ADMIN" || (await getActiveSubscription(record.userId));
+  redirect({ href: role === "ADMIN" ? "/admin" : active ? "/home" : "/join", locale });
   return {};
 }

@@ -86,8 +86,13 @@ export async function requireActiveMember(next?: string) {
 export async function redirectIfSignedIn(next?: string | null) {
   const user = await getCurrentUser();
   if (!user) return;
+  const locale = await getLocale();
+  if (user.role === "ADMIN") {
+    redirect({ href: safeNextPath(next) ?? "/admin", locale });
+    return;
+  }
   const active = await getActiveSubscription(user.id);
-  redirect({ href: active ? (safeNextPath(next) ?? "/home") : "/join", locale: await getLocale() });
+  redirect({ href: active ? (safeNextPath(next) ?? "/home") : "/join", locale });
 }
 
 /**

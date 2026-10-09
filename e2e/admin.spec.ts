@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cookieHeader, createSession, createUser, db, signInAs, testPhoto, uniqueEmail, waitForHydration } from "./helpers";
+import { cookieHeader, createSession, createUser, db, DEMO_PASSWORD, signInAs, testPhoto, uniqueEmail, waitForHydration } from "./helpers";
 
 test.describe("backoffice access", () => {
   test("visitors go to login, members get a 404, admins get in", async ({ request }) => {
@@ -20,6 +20,19 @@ test.describe("backoffice access", () => {
     expect(admin.status()).toBe(200);
     expect(await admin.text()).toContain("Resumo do clube");
   });
+});
+
+test("the admin lands in the backoffice after signing in, never on the plan step", async ({ page }) => {
+  const email = uniqueEmail("adminlogin");
+  await createUser(email, { role: "ADMIN" });
+  await page.goto("/pt/login");
+  await waitForHydration(page, "#login-email");
+  await page.getByLabel("Email").fill(email);
+  await page.locator("#login-password").fill(DEMO_PASSWORD);
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await expect(page).toHaveURL(/\/pt\/admin$/);
+  await page.goto("/pt/join");
+  await expect(page).toHaveURL(/\/pt\/admin$/);
 });
 
 test("admin creates a partner and an offer with a photo; members see it, drafts stay hidden", async ({ page, context, baseURL, request }) => {

@@ -50,6 +50,8 @@ export default async function JoinPage({ params, searchParams }: PageProps<"/[lo
     );
   }
 
+  // The admin never buys a pass (the backoffice gives full access).
+  if (user.role === "ADMIN") redirect({ href: "/admin", locale });
   if (await getActiveSubscription(user.id)) redirect({ href: "/home", locale });
 
   // A failed payment is fixed in the Stripe portal; a new Checkout would bill twice.
