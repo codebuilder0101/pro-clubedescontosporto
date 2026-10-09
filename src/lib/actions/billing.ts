@@ -8,7 +8,7 @@ import { getActiveSubscription, requireUser } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { siteUrl } from "@/lib/seo";
-import { getPriceId, stripe, stripeConfigured, stripeLocale } from "@/lib/stripe";
+import { getPortalConfigurationId, getPriceId, PAYMENT_ISSUE_STATUSES, stripe, stripeConfigured, stripeLocale } from "@/lib/stripe";
 import { planSchema } from "@/lib/validation/auth";
 import type { FormState } from "./form-state";
 
@@ -29,6 +29,14 @@ export async function startCheckout(_prev: FormState, formData: FormData): Promi
   if (!plan.success) return { errors: { plan: "planRequired" } };
 
   if (!stripeConfigured()) return { errors: { form: "paymentsUnavailable" } };
+
+  // A subscription with a failed payment is fixed in the portal, never replaced:
+  // a second Checkout would bill the member twice.
+  const troubled = await db.subscription.findFirst({
+    where: { userId: user.id, provider: "STRIPE", status: { in: [...PAYMENT_ISSUE_STATUSES] } },
+    select: { id: true },
+  });
+  if (troubled) return { errors: { form: "paymentIssue" } };
 
   const limit = await rateLimit(`checkout:user:${user.id}`, 10, 60 * 60_000);
   if (!limit.ok) return { errors: { form: "rateLimited" } };
@@ -72,5 +80,35 @@ export async function startCheckout(_prev: FormState, formData: FormData): Promi
   }
 
   if (!url) return { errors: { form: "paymentsError" } };
+  nextRedirect(url);
+}
+
+/**
+ * Opens the Stripe Customer Portal: change plan, update the card or IBAN,
+ * cancel at period end, download invoices. Changes come back by webhook.
+ */
+export async function openBillingPortal(): Promise<void> {
+  const locale = (await getLocale()) as Locale;
+  const user = await requireUser("/account");
+  if (!user.stripeCustomerId || !stripeConfigured()) {
+    redirect({ href: { pathname: "/account", query: { billing: "unavailable" } }, locale });
+    return;
+  }
+
+  let url: string;
+  try {
+    const configuration = await getPortalConfigurationId();
+    const session = await stripe().billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: new URL(getPathname({ locale, href: "/account" }), siteUrl()).toString(),
+      locale: stripeLocale(locale) as never,
+      ...(configuration ? { configuration } : {}),
+    });
+    url = session.url;
+  } catch (err) {
+    console.error("[stripe] billing portal session failed", err);
+    redirect({ href: { pathname: "/account", query: { billing: "error" } }, locale });
+    return;
+  }
   nextRedirect(url);
 }

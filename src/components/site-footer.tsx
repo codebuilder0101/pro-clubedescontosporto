@@ -18,6 +18,7 @@ export function SiteFooter() {
         { label: tNav("howItWorks"), href: home("how-it-works") },
         { label: tNav("plans"), href: home("plans") },
         { label: tNav("faq"), href: home("faq") },
+        { label: t("partners"), href: "/partners" },
       ],
     },
     {

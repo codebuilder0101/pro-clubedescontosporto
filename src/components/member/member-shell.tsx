@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/guards";
+import { Icon } from "../icon";
 import { LocaleSwitcher } from "../locale-switcher";
 import { Logo } from "../logo";
 import { SiteFooter } from "../site-footer";
@@ -27,6 +28,7 @@ export async function MemberShell({ children }: { children: ReactNode }) {
     { href: "/home", label: t("home"), icon: "home", tone: "" },
     { href: "/explore", label: t("explore"), icon: "search", tone: "ci-sky" },
     { href: "/card", label: t("card"), icon: "card", tone: "ci-sun" },
+    { href: "/favorites", label: t("favorites"), icon: "heart", tone: "ci-wine" },
     { href: "/account", label: t("account"), icon: "user", tone: "ci-slate" },
   ];
 
@@ -38,9 +40,15 @@ export async function MemberShell({ children }: { children: ReactNode }) {
             <Logo hideTaglineOnMobile />
           </Link>
           <div className="ml-auto lg:ml-8">
-            <MemberNav items={items.slice(0, 3)} label={t("label")} />
+            <MemberNav items={items.slice(0, 4)} label={t("label")} />
           </div>
           <LocaleSwitcher className="hidden md:grid lg:ml-auto" />
+          {user?.role === "ADMIN" && (
+            <Link href="/admin" className="btn btn-ghost hidden !min-h-[48px] !px-4 !text-[15px] sm:inline-flex">
+              <Icon name="sliders" className="size-5" />
+              {t("admin")}
+            </Link>
+          )}
           {user && (
             <Link href="/account" className="avatar" aria-label={`${t("accountLabel")}: ${user.name}`} title={user.name}>
               {initials(user.name)}

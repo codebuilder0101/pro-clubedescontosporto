@@ -56,6 +56,10 @@ Mobile-first subscription web platform. Members pay 1€/month (or 10€/year) f
 - `src/app/[locale]/(member)/`: home, explore (search), offers/[slug], card, account. `MemberShell` (header nav + phone dock). Each page calls `requireActiveMember()` (account: `requireUser()`); the data layer `src/lib/offers.ts` calls it again.
 - Server actions: `src/lib/actions/auth.ts`, `src/lib/actions/billing.ts`. Errors are codes translated from `Auth.errors.*`.
 - Stripe: `src/lib/stripe.ts` (Checkout), `src/app/api/stripe/webhook/route.ts` + `src/lib/stripe-webhook.ts` (the only writer of STRIPE subscriptions; idempotent, ignores stale events).
+- `src/app/[locale]/admin/`: backoffice (single ADMIN role, 4 languages): dashboard, offers (+ photos), partners/venues (map picker, Nominatim geocoding), categories, zones, members (free access, suspend), partner requests, activity log. Every page and action calls `requireAdmin()` (non-admins get 404); reads in `src/lib/admin/queries.ts`, writes in `src/lib/actions/admin/*` with `audit()`. Admin texts live in the `Admin` namespace, sent to the client only inside `/admin`.
+- Member extras (Phase 2): `/favorites`, discount use (`Redemption`, `src/lib/redemption.ts`), account settings (`src/lib/actions/account.ts`: profile, email, password, devices, GDPR export `/api/account/export`, delete), Stripe Customer Portal (`openBillingPortal`). Failed payment (PAST_DUE/UNPAID/PAUSED) = no access; members fix it in the portal, never via a second Checkout.
+- Offer photos: VPS disk (`UPLOAD_DIR`, `src/lib/media.ts`, WebP large + thumb), served only to active members/admins by `/api/media/offers/[file]`.
+- Public partner request form: `/partners` (`src/lib/actions/partners.ts`, honeypot).
 - Placeholder pages (`terms`, `privacy`, `cookies`) use `placeholderRoute()` and are `noindex`. Replace them as the real features land.
 - Every page sets its own canonical/hreflang with `pageMetadata(locale, href)` (the layout does not).
 - Every layout/page using next-intl calls `setRequestLocale(locale)`, or the route stops being statically rendered.
@@ -82,7 +86,8 @@ npm run lint | typecheck | test | test:e2e
 npm run i18n:check     # fails if any key is missing, empty or has different ICU args in any locale
 npm run db:migrate | db:deploy | db:seed
 npm run stripe:setup                               # product + prices in Stripe (idempotent)
-npm run member:grant -- <email> <days> | --revoke  # manual access until the backoffice exists
+npm run member:grant -- <email> <days> | --revoke  # manual access (also in the backoffice)
+npm run admin:set -- <email> [--remove]            # the single admin account
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 

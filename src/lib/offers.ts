@@ -5,6 +5,7 @@ import { requireActiveMember } from "@/lib/auth/guards";
 import { pickTranslation } from "@/lib/content-locale";
 import { db } from "@/lib/db";
 import type { DiscountLike } from "@/lib/discount";
+import { offerImageUrls } from "@/lib/media";
 import { escapeLike, SEARCH_PAGE_SIZE, searchTerms, type SearchQuery } from "@/lib/search-params";
 
 // Member-only offer data. Every exported function that returns offer details
@@ -31,7 +32,7 @@ const cardSelect = {
   discountType: true,
   discountValue: true,
   artKind: true,
-  imageUrl: true,
+  images: { select: { fileName: true }, orderBy: { sortOrder: "asc" }, take: 1 },
   translations: { select: { locale: true, title: true, summary: true, badge: true } },
   venue: {
     select: { name: true, neighbourhood: true, zone: { select: { slug: true, translations: named } } },
@@ -53,8 +54,10 @@ export type OfferCard = {
   category: CategoryInfo;
   discount: DiscountLike;
   artKind: string;
-  imageUrl: string | null;
+  /** Cover photo (first image), or null to show the illustration. */
+  image: { src: string; thumb: string } | null;
   featured: boolean;
+  isFavorite: boolean;
 };
 
 function nameIn(rows: readonly { locale: string; name: string }[], locale: Locale): string {
@@ -69,7 +72,7 @@ function toDiscount(row: { discountType: CardRow["discountType"]; discountValue:
   };
 }
 
-function toCard(row: CardRow, locale: Locale): OfferCard {
+function toCard(row: CardRow, locale: Locale, favorites: ReadonlySet<string> = new Set()): OfferCard {
   const tr = pickTranslation(row.translations, locale);
   return {
     slug: row.slug,
@@ -86,8 +89,9 @@ function toCard(row: CardRow, locale: Locale): OfferCard {
     },
     discount: toDiscount(row, tr?.badge),
     artKind: row.artKind,
-    imageUrl: row.imageUrl,
+    image: row.images[0] ? offerImageUrls(row.images[0].fileName) : null,
     featured: row.featured,
+    isFavorite: favorites.has(row.id),
   };
 }
 
@@ -116,13 +120,20 @@ export async function getZones(locale: Locale): Promise<ZoneInfo[]> {
   return zones.map((z) => ({ slug: z.slug, name: nameIn(z.translations, locale) }));
 }
 
+/** Which of these offers the member has saved. */
+async function favoriteSet(userId: string, offerIds: string[]): Promise<Set<string>> {
+  if (!offerIds.length) return new Set();
+  const rows = await db.favorite.findMany({ where: { userId, offerId: { in: offerIds } }, select: { offerId: true } });
+  return new Set(rows.map((r) => r.offerId));
+}
+
 /** Member home: featured offers first, then the newest ones. */
 export async function getHomeOffers(locale: Locale) {
-  await requireActiveMember();
+  const { user } = await requireActiveMember();
   const [featured, latest] = await Promise.all([
     db.offer.findMany({
       where: { ...liveOfferWhere(), featured: true },
-      orderBy: { updatedAt: "desc" },
+      orderBy: [{ featuredOrder: "asc" }, { updatedAt: "desc" }],
       take: 4,
       select: cardSelect,
     }),
@@ -133,7 +144,8 @@ export async function getHomeOffers(locale: Locale) {
       select: cardSelect,
     }),
   ]);
-  return { featured: featured.map((r) => toCard(r, locale)), latest: latest.map((r) => toCard(r, locale)) };
+  const favs = await favoriteSet(user.id, [...featured, ...latest].map((r) => r.id));
+  return { featured: featured.map((r) => toCard(r, locale, favs)), latest: latest.map((r) => toCard(r, locale, favs)) };
 }
 
 export type SearchResult = { offers: OfferCard[]; total: number; page: number; pageCount: number };
@@ -144,7 +156,7 @@ export type SearchResult = { offers: OfferCard[]; total: number; page: number; p
  * as an accent-insensitive substring or a close trigram match (typos).
  */
 export async function searchOffers(query: SearchQuery, locale: Locale): Promise<SearchResult> {
-  await requireActiveMember();
+  const { user } = await requireActiveMember();
   const now = new Date();
   const terms = searchTerms(query.q);
 
@@ -192,15 +204,17 @@ export async function searchOffers(query: SearchQuery, locale: Locale): Promise<
   const ids = rows.map((r) => r.id);
   const found = ids.length ? await db.offer.findMany({ where: { id: { in: ids } }, select: cardSelect }) : [];
   const byId = new Map(found.map((r) => [r.id, r]));
+  const favs = await favoriteSet(user.id, ids);
   const offers = ids.flatMap((id) => {
     const row = byId.get(id);
-    return row ? [toCard(row, locale)] : [];
+    return row ? [toCard(row, locale, favs)] : [];
   });
 
   return { offers, total, page: query.page, pageCount: Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE)) };
 }
 
 export type OfferDetail = OfferCard & {
+  images: { src: string; thumb: string; width: number; height: number }[];
   description: string;
   schedule: string | null;
   conditions: string[];
@@ -220,11 +234,13 @@ export type OfferDetail = OfferCard & {
 
 /** Full offer for its detail page, or null if it doesn't exist or isn't live. */
 export async function getOffer(slug: string, locale: Locale): Promise<OfferDetail | null> {
-  await requireActiveMember();
+  const { user } = await requireActiveMember();
   const row = await db.offer.findFirst({
-    where: { slug, ...liveOfferWhere() },
+    // Admins can preview drafts and scheduled offers.
+    where: user.role === "ADMIN" ? { slug } : { slug, ...liveOfferWhere() },
     select: {
       ...cardSelect,
+      images: { select: { fileName: true, width: true, height: true }, orderBy: { sortOrder: "asc" } },
       maxPeople: true,
       translations: {
         select: { locale: true, title: true, summary: true, badge: true, description: true, schedule: true, conditions: true },
@@ -248,8 +264,10 @@ export async function getOffer(slug: string, locale: Locale): Promise<OfferDetai
   if (!row) return null;
   const tr = pickTranslation(row.translations, locale);
   const { zone, ...venue } = row.venue;
+  const favs = await favoriteSet(user.id, [row.id]);
   return {
-    ...toCard(row, locale),
+    ...toCard(row, locale, favs),
+    images: row.images.map((i) => ({ ...offerImageUrls(i.fileName), width: i.width, height: i.height })),
     description: tr?.description ?? "",
     schedule: tr?.schedule ?? null,
     conditions: tr?.conditions ?? [],
@@ -257,4 +275,29 @@ export async function getOffer(slug: string, locale: Locale): Promise<OfferDetai
     zoneName: nameIn(zone.translations, locale),
     venue,
   };
+}
+
+/** The member's saved offers that are still live, newest first. */
+export async function getFavoriteOffers(locale: Locale): Promise<OfferCard[]> {
+  const { user } = await requireActiveMember();
+  const rows = await db.favorite.findMany({
+    where: { userId: user.id, offer: liveOfferWhere() },
+    orderBy: { createdAt: "desc" },
+    select: { offer: { select: cardSelect } },
+  });
+  const favs = new Set(rows.map((r) => r.offer.id));
+  return rows.map((r) => toCard(r.offer, locale, favs));
+}
+
+export type SavingsSummary = { total: number; count: number; since: Date | null };
+
+/** What the member has recorded saving with the club. */
+export async function getSavingsSummary(userId: string): Promise<SavingsSummary> {
+  const agg = await db.redemption.aggregate({
+    where: { userId },
+    _sum: { savedAmount: true },
+    _count: { _all: true },
+    _min: { createdAt: true },
+  });
+  return { total: agg._sum.savedAmount?.toNumber() ?? 0, count: agg._count._all, since: agg._min.createdAt };
 }

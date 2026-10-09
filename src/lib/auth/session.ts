@@ -14,10 +14,12 @@ import { generateToken, hashToken } from "./tokens";
 /** Extend the session when less than this is left (sliding expiry). */
 const RENEW_WHEN_LEFT_MS = 15 * 24 * 60 * 60 * 1000;
 
-export async function createSession(userId: string) {
+export async function createSession(userId: string, userAgent?: string | null) {
   const token = generateToken();
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  await db.session.create({ data: { id: hashToken(token), userId, expiresAt } });
+  await db.session.create({
+    data: { id: hashToken(token), userId, expiresAt, userAgent: userAgent?.slice(0, 300) || null },
+  });
   return { token, expiresAt };
 }
 
@@ -37,6 +39,7 @@ export async function validateSessionToken(token: string) {
     select: {
       id: true,
       expiresAt: true,
+      lastUsedAt: true,
       user: {
         select: {
           id: true,
@@ -46,6 +49,7 @@ export async function validateSessionToken(token: string) {
           memberNumber: true,
           preferredLocale: true,
           stripeCustomerId: true,
+          blockedAt: true,
           createdAt: true,
         },
       },
@@ -54,14 +58,16 @@ export async function validateSessionToken(token: string) {
   if (!session) return null;
 
   const now = Date.now();
-  if (session.expiresAt.getTime() <= now) {
+  if (session.expiresAt.getTime() <= now || session.user.blockedAt) {
     await db.session.deleteMany({ where: { id } });
     return null;
   }
-  if (session.expiresAt.getTime() - now < RENEW_WHEN_LEFT_MS) {
+  const renew = session.expiresAt.getTime() - now < RENEW_WHEN_LEFT_MS;
+  const touch = now - session.lastUsedAt.getTime() > 60 * 60 * 1000;
+  if (renew || touch) {
     // The proxy refreshes the cookie's own expiry on every navigation.
-    session.expiresAt = new Date(now + SESSION_TTL_MS);
-    await db.session.update({ where: { id }, data: { expiresAt: session.expiresAt } });
+    if (renew) session.expiresAt = new Date(now + SESSION_TTL_MS);
+    await db.session.update({ where: { id }, data: { expiresAt: session.expiresAt, lastUsedAt: new Date(now) } });
   }
   return session;
 }
@@ -81,6 +87,12 @@ export async function invalidateSession(token: string) {
 
 export async function invalidateUserSessions(userId: string) {
   await db.session.deleteMany({ where: { userId } });
+}
+
+/** SHA-256 id of the current session, to mark "this device" in the device list. */
+export async function currentSessionId() {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  return token ? hashToken(token) : null;
 }
 
 /** Current cookie token, if any (for sign-out). */

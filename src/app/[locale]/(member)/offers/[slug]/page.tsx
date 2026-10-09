@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Icon, type IconName } from "@/components/icon";
+import { FavoriteButton } from "@/components/member/favorite-button";
+import { OfferGallery } from "@/components/member/offer-gallery";
 import { OfferMap } from "@/components/member/offer-map";
-import { OfferVisual } from "@/components/member/offer-visual";
+import { RedemptionForm } from "@/components/member/redemption-form";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { requireActiveMember } from "@/lib/auth/guards";
@@ -69,8 +71,9 @@ export default async function OfferPage({ params }: PageProps<"/[locale]/offers/
 
       <div className="grid gap-[clamp(28px,4vw,56px)] lg:grid-cols-[1fr_1.05fr]">
         <div className="lg:sticky lg:top-[calc(var(--nav-h)+24px)] lg:self-start">
-          <div className="art relative aspect-[4/3.4] overflow-hidden rounded-[34px_34px_34px_120px] shadow-2">
-            <OfferVisual artKind={offer.artKind} imageUrl={offer.imageUrl} alt={offer.venueName} />
+          <div className="relative">
+            <OfferGallery images={offer.images} art={offer.artKind} alt={offer.venueName} />
+            <FavoriteButton slug={offer.slug} initial={offer.isFavorite} className="absolute top-4 left-4" />
           </div>
         </div>
 
@@ -161,6 +164,8 @@ export default async function OfferPage({ params }: PageProps<"/[locale]/offers/
             <Icon name="card" className="size-5" />
             {t("showCard")}
           </Link>
+
+          <RedemptionForm slug={offer.slug} />
         </article>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import "server-only";
+import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { cache } from "react";
 import { db } from "@/lib/db";
@@ -30,6 +31,29 @@ export const getActiveSubscription = cache(async (userId: string) => {
   return candidates.find((s) => isSubscriptionActive(s, now)) ?? null;
 });
 
+/**
+ * The admin sees the member area (to preview offers) without paying: a
+ * synthetic pass that is never stored.
+ */
+function adminPass(userId: string) {
+  const now = new Date();
+  return {
+    id: "admin-pass",
+    userId,
+    provider: "MANUAL" as const,
+    stripeSubscriptionId: null,
+    stripePriceId: null,
+    plan: "YEARLY" as const,
+    status: "ACTIVE" as const,
+    currentPeriodEnd: new Date(now.getTime() + 365 * 86_400_000),
+    cancelAtPeriodEnd: false,
+    lastStripeEventAt: null,
+    note: "admin",
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 function loginHref(next?: string) {
   return next ? { pathname: "/login", query: { next } } : "/login";
 }
@@ -50,7 +74,7 @@ export async function requireUser(next?: string): Promise<SessionUser> {
  */
 export async function requireActiveMember(next?: string) {
   const user = await requireUser(next);
-  const subscription = await getActiveSubscription(user.id);
+  const subscription = (await getActiveSubscription(user.id)) ?? (user.role === "ADMIN" ? adminPass(user.id) : null);
   if (!subscription) {
     redirect({ href: "/join", locale: await getLocale() });
     throw new Error("unreachable");
@@ -65,3 +89,18 @@ export async function redirectIfSignedIn(next?: string | null) {
   const active = await getActiveSubscription(user.id);
   redirect({ href: active ? (safeNextPath(next) ?? "/home") : "/join", locale: await getLocale() });
 }
+
+/**
+ * The single admin role (decision 2026-10-09). Non-admins get a 404 so the
+ * backoffice doesn't reveal that it exists; visitors go to the login page.
+ */
+export async function requireAdmin(next = "/admin") {
+  const user = await requireUser(next);
+  if (user.role !== "ADMIN") notFound();
+  return user;
+}
+
+/** Latest subscription of any status, for the account page (failed payments etc.). */
+export const getLatestSubscription = cache(async (userId: string) => {
+  return db.subscription.findFirst({ where: { userId }, orderBy: [{ updatedAt: "desc" }] });
+});

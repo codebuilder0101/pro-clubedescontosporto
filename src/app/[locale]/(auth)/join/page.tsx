@@ -10,7 +10,9 @@ import { Icon } from "@/components/icon";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { signOut } from "@/lib/actions/auth";
-import { getActiveSubscription, getCurrentUser } from "@/lib/auth/guards";
+import { openBillingPortal } from "@/lib/actions/billing";
+import { getActiveSubscription, getCurrentUser, getLatestSubscription } from "@/lib/auth/guards";
+import { PAYMENT_ISSUE_STATUSES } from "@/lib/stripe";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/join">): Promise<Metadata> {
@@ -49,6 +51,22 @@ export default async function JoinPage({ params, searchParams }: PageProps<"/[lo
   }
 
   if (await getActiveSubscription(user.id)) redirect({ href: "/home", locale });
+
+  // A failed payment is fixed in the Stripe portal; a new Checkout would bill twice.
+  const latest = await getLatestSubscription(user.id);
+  if (latest?.provider === "STRIPE" && (PAYMENT_ISSUE_STATUSES as readonly string[]).includes(latest.status)) {
+    return (
+      <>
+        <AuthHeading title={t("paymentIssueTitle")} lead={t("paymentIssueText")} />
+        <form action={openBillingPortal}>
+          <button type="submit" className="btn btn-sun w-full">
+            <Icon name="external" className="size-5" />
+            {t("fixPayment")}
+          </button>
+        </form>
+      </>
+    );
+  }
 
   return (
     <>

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Figtree, JetBrains_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { formatMoney } from "@/lib/format";
 import { MONTHLY_PRICE_EUR } from "@/lib/pricing";
@@ -70,6 +70,11 @@ export default async function LocaleLayout({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Common" });
+  // Client components get every namespace except the backoffice (loaded by the
+  // admin layout) and emails (server only), so public pages stay light.
+  const { Admin: _admin, Email: _email, ...clientMessages } = await getMessages();
+  void _admin;
+  void _email;
 
   return (
     <html lang={locale} className={`${display.variable} ${body.variable} ${mono.variable}`}>
@@ -80,7 +85,7 @@ export default async function LocaleLayout({
         >
           {t("skipToContent")}
         </a>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1335,8 +1335,8 @@
     z-index: 60;
     inset: auto 0 0 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    grid-template-columns: repeat(5, 1fr);
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
     background: rgba(251, 250, 246, 0.92);
     backdrop-filter: blur(16px);
     border-top: 1px solid var(--line);
@@ -1347,7 +1347,8 @@
     align-items: center;
     gap: 4px;
     padding: 4px 0;
-    font-size: 13px;
+    font-size: 12px;
+    white-space: nowrap;
     font-weight: 800;
     color: var(--mute);
   }
@@ -1592,5 +1593,212 @@
     letter-spacing: 0.04em;
     color: var(--deep);
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ---------- Phase 2: favourites, admin ---------- */
+@layer components {
+  .fav-btn {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    flex: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: #b1567d;
+    box-shadow: var(--sh-1);
+    transition:
+      transform 0.2s,
+      background 0.2s;
+  }
+  .fav-btn[aria-pressed="true"] {
+    color: #c2185b;
+  }
+  .fav-btn:hover {
+    transform: scale(1.08);
+  }
+  .fav-btn:disabled {
+    cursor: progress;
+  }
+  /* A stretched link inside a card shows its focus ring on the whole card. */
+  .offer-card:has(a:focus-visible),
+  .offer-tile:has(a:focus-visible) {
+    outline: 3px solid var(--sun);
+    outline-offset: 3px;
+  }
+}
+
+/* ---------- Backoffice ---------- */
+@layer components {
+  .admin-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: var(--sh-1);
+    padding: clamp(16px, 2.4vw, 28px);
+  }
+  .admin-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--deep);
+    white-space: nowrap;
+  }
+  .admin-nav a:hover {
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .admin-nav a[aria-current="page"] {
+    background: #fff;
+    box-shadow: var(--sh-1);
+  }
+  .admin-nav a .ci {
+    --s: 34px;
+  }
+  .a-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .a-input {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    font-weight: 600;
+    color: var(--ink);
+    outline: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  textarea.a-input {
+    min-height: 110px;
+    resize: vertical;
+  }
+  .a-input:focus {
+    border-color: var(--cobalt);
+    box-shadow: 0 0 0 4px rgba(23, 71, 166, 0.12);
+  }
+  .a-input[aria-invalid="true"] {
+    border-color: var(--bad);
+  }
+  .a-hint {
+    margin-top: 6px;
+    font-size: 14px;
+    color: var(--mute);
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .status-PUBLISHED,
+  .status-ACTIVE,
+  .status-ACCEPTED {
+    background: #dff3e9;
+    color: #0e6b42;
+  }
+  .status-DRAFT,
+  .status-NEW,
+  .status-TRIALING {
+    background: #fff1c7;
+    color: #8a5a00;
+  }
+  .status-ARCHIVED,
+  .status-CANCELED,
+  .status-INCOMPLETE_EXPIRED,
+  .status-INCOMPLETE {
+    background: #e8ecf3;
+    color: #4a5670;
+  }
+  .status-REJECTED,
+  .status-PAST_DUE,
+  .status-UNPAID,
+  .status-PAUSED,
+  .status-BLOCKED {
+    background: #fbe7e3;
+    color: #8f2a1b;
+  }
+  .status-CONTACTED,
+  .status-ADMIN {
+    background: var(--tile);
+    color: var(--deep);
+  }
+  .tabs-list {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px;
+    border-radius: 16px;
+    background: var(--linen);
+  }
+  .tabs-list button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 12px;
+    font-weight: 800;
+    color: var(--mute);
+    white-space: nowrap;
+  }
+  .tabs-list button[aria-selected="true"] {
+    background: #fff;
+    color: var(--deep);
+    box-shadow: var(--sh-1);
+  }
+  .tab-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--warn);
+  }
+  .tab-dot[data-complete="true"] {
+    background: var(--ok);
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat b {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 3.2vw, 42px);
+    line-height: 1;
+    color: var(--deep);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--mute);
+  }
+  .row-link {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    transition: background 0.2s;
+  }
+  .row-link:hover {
+    background: var(--linen);
   }
 }

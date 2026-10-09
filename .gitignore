@@ -52,3 +52,6 @@ next-env.d.ts
 
 # separate build output for e2e runs
 /.next-e2e/
+
+# offer photos in development (production uses UPLOAD_DIR outside the repo)
+/uploads/

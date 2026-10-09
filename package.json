@@ -17,6 +17,7 @@
     "db:seed": "prisma db seed",
     "stripe:setup": "tsx scripts/stripe-setup.ts",
     "member:grant": "tsx scripts/grant-membership.ts",
+    "admin:set": "tsx scripts/set-admin.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "react-dom": "19.2.8",
     "resend": "^6.32.1",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "stripe": "^23.0.0",
     "zod": "^4.6.5"
   },

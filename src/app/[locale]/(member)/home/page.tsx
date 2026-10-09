@@ -9,8 +9,8 @@ import { FeaturedBadge } from "@/components/member/featured-badge";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { requireActiveMember } from "@/lib/auth/guards";
-import { formatDateTime, TIME_ZONE } from "@/lib/format";
-import { getCategoriesWithCounts, getHomeOffers, getZones } from "@/lib/offers";
+import { formatDateTime, formatMoney, TIME_ZONE } from "@/lib/format";
+import { getCategoriesWithCounts, getHomeOffers, getSavingsSummary, getZones } from "@/lib/offers";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/home">): Promise<Metadata> {
@@ -33,20 +33,39 @@ export default async function MemberHomePage({ params }: PageProps<"/[locale]/ho
   const locale = raw as Locale;
   const { user } = await requireActiveMember("/home");
 
-  const [t, categories, zones, offers] = await Promise.all([
+  const [t, categories, zones, offers, savings] = await Promise.all([
     getTranslations("Home"),
     getCategoriesWithCounts(locale),
     getZones(locale),
     getHomeOffers(locale),
+    getSavingsSummary(user.id),
   ]);
   const now = new Date();
   const [hero, ...side] = offers.featured;
 
   return (
     <div className="wrap flex flex-col gap-[clamp(32px,4vw,56px)] pt-6 pb-16 lg:pt-10">
-      <header className="flex flex-col gap-3">
-        <span className="eyebrow">{formatDateTime(locale, now, { weekday: "long", day: "numeric", month: "long" })}</span>
-        <h1 className="text-[clamp(36px,5.6vw,72px)] font-extrabold">{t(greetingKey(now), { name: user.name.split(" ")[0] })}</h1>
+      <header className="flex flex-wrap items-end justify-between gap-5">
+        <div className="flex flex-col gap-3">
+          <span className="eyebrow">{formatDateTime(locale, now, { weekday: "long", day: "numeric", month: "long" })}</span>
+          <h1 className="text-[clamp(36px,5.6vw,72px)] font-extrabold">{t(greetingKey(now), { name: user.name.split(" ")[0] })}</h1>
+        </div>
+        {savings.count > 0 && (
+          <Link href="/account#activity" className="flex items-center gap-4 rounded-full bg-white py-2.5 pr-6 pl-2.5 shadow-2">
+            <span className="ci ci-sun [--s:56px]">
+              <Icon name="sparkle" />
+            </span>
+            <span>
+              <b className="block font-display text-lg text-deep">{t("saved", { amount: formatMoney(locale, savings.total) })}</b>
+              <span className="text-[14px] text-mute">
+                {t("savedDetail", {
+                  count: savings.count,
+                  date: formatDateTime(locale, savings.since ?? now, { month: "long", year: "numeric" }),
+                })}
+              </span>
+            </span>
+          </Link>
+        )}
       </header>
 
       <SearchBar categories={categories} zones={zones} />
@@ -77,7 +96,7 @@ export default async function MemberHomePage({ params }: PageProps<"/[locale]/ho
               href={`/offers/${hero.slug}`}
               className="art relative block min-h-[340px] overflow-hidden rounded-[34px] shadow-2 lg:min-h-[440px]"
             >
-              <OfferVisual artKind={hero.artKind} imageUrl={hero.imageUrl} alt="" />
+              <OfferVisual artKind={hero.artKind} image={hero.image} alt="" size="full" priority />
               <div className="absolute top-4 right-4 sm:top-auto sm:right-10 sm:bottom-10">
                 <FeaturedBadge discount={hero.discount} label={t("exclusive")} />
               </div>

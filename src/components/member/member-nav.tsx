@@ -3,7 +3,7 @@
 import { Link, usePathname } from "@/i18n/navigation";
 import { Icon, type IconName } from "../icon";
 
-export type MemberNavItem = { href: "/home" | "/explore" | "/card" | "/account"; label: string; icon: IconName; tone: string };
+export type MemberNavItem = { href: "/home" | "/explore" | "/card" | "/favorites" | "/account"; label: string; icon: IconName; tone: string };
 
 function isCurrent(pathname: string, href: string) {
   if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/offers/");

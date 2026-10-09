@@ -38,3 +38,19 @@ export async function getPriceId(plan: Plan): Promise<string> {
 export function stripeLocale(locale: Locale): Stripe.Checkout.SessionCreateParams.Locale {
   return ({ "pt-PT": "pt", fr: "fr", es: "es", en: "en-GB" } as const)[locale];
 }
+
+/** Tag on the Customer Portal configuration created by `npm run stripe:setup`. */
+export const PORTAL_CONFIG_TAG = "clubedescontosporto-portal";
+
+let portalConfig: { id: string | null; at: number } | undefined;
+/** The club's portal configuration (plan switch, cancel at period end, payment method, invoices). */
+export async function getPortalConfigurationId(): Promise<string | null> {
+  if (portalConfig && Date.now() - portalConfig.at < 10 * 60_000) return portalConfig.id;
+  const { data } = await stripe().billingPortal.configurations.list({ active: true, limit: 100 });
+  const found = data.find((c) => c.metadata?.app === PORTAL_CONFIG_TAG);
+  portalConfig = { id: found?.id ?? null, at: Date.now() };
+  return portalConfig.id;
+}
+
+/** Stripe statuses where the member must fix their payment instead of starting a new subscription. */
+export const PAYMENT_ISSUE_STATUSES = ["PAST_DUE", "UNPAID", "PAUSED"] as const;

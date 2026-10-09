@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { getPathname, redirect } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -44,7 +45,7 @@ function planQuery(raw: FormDataEntryValue | null): { plan?: string } {
 }
 
 async function startSession(userId: string) {
-  const { token, expiresAt } = await createSession(userId);
+  const { token, expiresAt } = await createSession(userId, (await headers()).get("user-agent"));
   await setSessionCookie(token, expiresAt);
 }
 
@@ -110,7 +111,7 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   ]);
   if (!byIp.ok || !byEmail.ok) return { errors: { form: "rateLimited" }, values };
 
-  const user = await db.user.findUnique({ where: { email }, select: { id: true, passwordHash: true } });
+  const user = await db.user.findUnique({ where: { email }, select: { id: true, passwordHash: true, blockedAt: true } });
   if (!user) {
     await verifyDummyPassword(password);
     return { errors: { form: "invalidCredentials" }, values };
@@ -118,6 +119,8 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   if (!(await verifyPassword(user.passwordHash, password))) {
     return { errors: { form: "invalidCredentials" }, values };
   }
+  // Only revealed after a correct password, so it can't be used to probe accounts.
+  if (user.blockedAt) return { errors: { form: "accountBlocked" }, values };
 
   await db.user.update({ where: { id: user.id }, data: { preferredLocale: locale } });
   await startSession(user.id);

@@ -12,7 +12,7 @@ const MEMBER_ONLY = [
   "Reserva recomendada à sexta", // condition
 ];
 
-const PAGES = ["/pt/offers/tasca-da-viela", "/pt/explore", "/pt/explore?q=viela", "/pt/home", "/pt/card"];
+const PAGES = ["/pt/offers/tasca-da-viela", "/pt/explore", "/pt/explore?q=viela", "/pt/home", "/pt/card", "/pt/favorites"];
 
 function expectNoMemberData(body: string, label: string) {
   for (const secret of MEMBER_ONLY) expect(body, `${label} leaks "${secret}"`).not.toContain(secret);

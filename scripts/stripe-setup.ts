@@ -55,6 +55,40 @@ async function main() {
     console.log(`${plan.lookupKey}: created (${price.id})`);
   }
 
+  // Customer Portal: switch plan, cancel at period end, update payment method, invoices.
+  const priceIds = [];
+  for (const plan of plans) {
+    const { data } = await stripe.prices.list({ lookup_keys: [plan.lookupKey], limit: 1 });
+    if (data[0]) priceIds.push(data[0].id);
+  }
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://clubedescontosporto.pt";
+  const portalFeatures = {
+    customer_update: { enabled: false },
+    invoice_history: { enabled: true },
+    payment_method_update: { enabled: true },
+    subscription_cancel: { enabled: true, mode: "at_period_end" as const, cancellation_reason: { enabled: true, options: ["too_expensive", "unused", "other"] as ("too_expensive" | "unused" | "other")[] } },
+    subscription_update: {
+      enabled: true,
+      default_allowed_updates: ["price" as const],
+      proration_behavior: "create_prorations" as const,
+      products: [{ product: product.id, prices: priceIds }],
+    },
+  };
+  const configs = await stripe.billingPortal.configurations.list({ active: true, limit: 100 });
+  const existingPortal = configs.data.find((c) => c.metadata?.app === "clubedescontosporto-portal");
+  const portalParams = {
+    business_profile: { headline: "Clube Descontos Porto", privacy_policy_url: `${site}/pt/privacy`, terms_of_service_url: `${site}/pt/terms` },
+    features: portalFeatures,
+    default_return_url: `${site}/pt/account`,
+  };
+  if (existingPortal) {
+    await stripe.billingPortal.configurations.update(existingPortal.id, portalParams);
+    console.log(`Customer Portal: updated (${existingPortal.id})`);
+  } else {
+    const created = await stripe.billingPortal.configurations.create({ ...portalParams, metadata: { app: "clubedescontosporto-portal" } });
+    console.log(`Customer Portal: created (${created.id})`);
+  }
+
   console.log("\nNext: in the Stripe Dashboard enable Card and SEPA Direct Debit (Settings → Payment methods),");
   console.log("and add a webhook endpoint for https://clubedescontosporto.pt/api/stripe/webhook with the events:");
   console.log("  checkout.session.completed, customer.subscription.created, customer.subscription.updated,");

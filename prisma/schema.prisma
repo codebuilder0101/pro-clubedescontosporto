@@ -60,6 +60,13 @@ enum OfferStatus {
   ARCHIVED
 }
 
+enum PartnerRequestStatus {
+  NEW
+  CONTACTED
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id              String    @id @default(cuid())
   /// Always stored lower-cased and trimmed.
@@ -73,21 +80,29 @@ model User {
   role            Role      @default(MEMBER)
   stripeCustomerId String?  @unique
   termsAcceptedAt DateTime
+  /// Set by an admin; a blocked user can't sign in and loses every session.
+  blockedAt       DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   sessions            Session[]
   subscriptions       Subscription[]
   passwordResetTokens PasswordResetToken[]
+  favorites           Favorite[]
+  redemptions         Redemption[]
+  auditLogs           AuditLog[]
 }
 
 /// Database session. The cookie holds a random token; only its SHA-256 is stored.
 model Session {
   /// SHA-256 (hex) of the session token.
-  id        String   @id
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id         String   @id
+  userId     String
+  expiresAt  DateTime
+  /// Browser that created the session, shown in the member's device list.
+  userAgent  String?
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -215,13 +230,14 @@ model Offer {
   categoryId    String
   status        OfferStatus  @default(DRAFT)
   featured      Boolean      @default(false)
+  /// Order among featured offers (lower first).
+  featuredOrder Int          @default(0)
   discountType  DiscountType
   discountValue Decimal?     @db.Decimal(8, 2)
   /// People covered by one card (null = no limit stated).
   maxPeople     Int?
   /// Placeholder illustration (OfferArt kind) until partners upload photos.
   artKind       String
-  imageUrl      String?
   startsAt      DateTime?
   endsAt        DateTime?
   createdAt     DateTime     @default(now())
@@ -230,9 +246,93 @@ model Offer {
   venue        Venue              @relation(fields: [venueId], references: [id], onDelete: Cascade)
   category     Category           @relation(fields: [categoryId], references: [id])
   translations OfferTranslation[]
+  images       OfferImage[]
+  favorites    Favorite[]
+  redemptions  Redemption[]
 
   @@index([status, categoryId])
   @@index([venueId])
+}
+
+/// Offer photo stored on the VPS disk (UPLOAD_DIR); served to members only.
+model OfferImage {
+  id        String   @id @default(cuid())
+  offerId   String
+  /// File name of the large version; the thumbnail is "<name>-thumb.webp".
+  fileName  String   @unique
+  width     Int
+  height    Int
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@index([offerId, sortOrder])
+}
+
+model Favorite {
+  userId    String
+  offerId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@id([userId, offerId])
+  @@index([offerId])
+}
+
+/// A member recording that they used a discount (self-reported, no partner validation).
+model Redemption {
+  id          String   @id @default(cuid())
+  userId      String
+  offerId     String
+  /// Bill before the discount, if the member entered it.
+  billAmount  Decimal? @db.Decimal(10, 2)
+  /// Estimated saving in euros (null when it can't be estimated).
+  savedAmount Decimal? @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([offerId, createdAt])
+}
+
+/// Business asking to become a partner (public form).
+model PartnerRequest {
+  id           String               @id @default(cuid())
+  businessName String
+  contactName  String
+  email        String
+  phone        String?
+  categorySlug String?
+  city         String
+  message      String
+  locale       String
+  status       PartnerRequestStatus @default(NEW)
+  /// Internal notes from the club team.
+  notes        String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([status, createdAt])
+}
+
+/// Every change made in the backoffice.
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  /// e.g. "offer.update", "member.grant"
+  action    String
+  entityId  String?
+  summary   String
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
 }
 
 model OfferTranslation {

@@ -32,9 +32,12 @@ npm run stripe:setup     # creates the product + 1 €/month and 10 €/year pri
 stripe listen --forward-to localhost:3000/api/stripe/webhook   # local webhooks; put the whsec_ in .env.local
 ```
 
-Membership only becomes active when a verified webhook arrives. Until the backoffice exists,
-complimentary access is given with `npm run member:grant -- <email> <days> ["reason"]`
-(and removed with `npm run member:grant -- <email> --revoke`).
+Membership only becomes active when a verified webhook arrives. Free access is given in the
+backoffice (Members) or with `npm run member:grant -- <email> <days> ["reason"]`.
+
+## Backoffice
+
+`/pt/admin` (or `/fr`, `/es`, `/en`). Make an account the admin with `npm run admin:set -- <email>`.
 
 ## Production deploy
 
